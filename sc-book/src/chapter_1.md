@@ -1,3 +1,0 @@
-# Structured Concurrency на примерах
-
-
