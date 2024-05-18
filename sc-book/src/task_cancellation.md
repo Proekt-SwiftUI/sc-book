@@ -18,7 +18,7 @@ https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/std
 
 ![Cancel Group][cancel_task]
 
-В случае с неструктурированными задачи, отмена происходит явно с помощью метода [cancel()](https://developer.apple.com/documentation/swift/task/cancel())
+В случае с неструктурированными задачи, отмена происходит явно с помощью метода [cancel()](https://developer.apple.com/documentation/swift/task/cancel()).
 
 ![Cancel UC][cancel_task_uc]
 
@@ -38,6 +38,7 @@ https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/std
 ![Task guard][task_guard_error]
 
 Если задача была отменена после блока `guard`, выполнение функции продолжиться и начнется подготовление к приготовлению супа.
+
 ![Task guard after][task_guard_continue]
 ---
 
