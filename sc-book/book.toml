@@ -3,4 +3,5 @@ authors = ["wmorgue"]
 language = "ru"
 multilingual = false
 src = "src"
-title = "Structured Concurrency в действии"
+title = "Structured Concurrency не магия"
+create-missing = false
