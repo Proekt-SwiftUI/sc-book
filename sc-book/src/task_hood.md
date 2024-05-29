@@ -18,6 +18,22 @@
 // running -> enqueued
 ```
 
+Схематично:
+
+```mermaid
+---
+title: Состояние задачи
+---
+flowchart LR
+    S((Suspended)) -- В ожидание --> E((Enqueued))
+    S((Suspended)) -- Выполнение без ожидания --> R((Running))
+    E -- Выполнение после ожидания --> R
+    
+    Run((Running)) -- Задача приостанавливается --> Sus((Suspended))
+    Run -- В ожидание --> Enq((Enqueued))
+    Run -- Выполнение завершилось --> C((Completed))
+```
+
 ## Метаданные
 
 Как понять, в каком состоянии задача приостановила свою работу ? А в каком должна возобновить ?
@@ -66,7 +82,7 @@ Job Interface: The Job interface represents a unit of work that an executor can 
 После завершения приостановки `await`, задача попадает в очередь соответствующего исполнителя, который планирует возобновление задачи.
 Runtime восстанавливает состояние задачи, позволяя возобновить выполнение `async` функции с того места, где она (функция) была приостановлена.
 
-### Handling Concurrency Safely:
+#### На конкретном примере
 
 Swift ensures thread safety by using synchronization primitives and careful state management in TaskStatusRecord and other concurrency constructs. This prevents race conditions and ensures that tasks are resumed correctly and safely.
 Executors manage task execution and ensure that resumption occurs on the correct thread or queue, maintaining the correctness of concurrent execution.
@@ -76,21 +92,18 @@ Here is a simplified example illustrating task suspension and resumption in Swif
 
 ```swift
 func fetchData() async throws -> Data {
-    let url = URL(string: "https://example.com/data")!
-    let (data, _) = try await URLSession.shared.data(from: url)
+    let url = URL(string: "https://image.lexica.art/full_webp/298d5d92-5735-4474-ba0c-6d6b418df251")!
+    let data = try await URLSession.shared.data(from: url).0
     return data
 }
 
 Task {
-    do {
-        let data = try await fetchData()
-        print("Data received: \(data)")
-    } catch {
-        print("Failed to fetch data: \(error)")
-    }
+    let data = try await fetchData()
+    print("Image size: \(data.count / 1024) kB")
 }
 ```
 
-`fetchData` is an asynchronous function that suspends when awaiting the network response.
-The await keyword suspends the task, and the state of fetchData is saved in a continuation.
-Once the network call completes, the continuation is enqueued and the task is resumed, printing the data or handling an error.
+В нашем случаем `fetchData` — это асинхронная функция, которая приостанавливается при ожидании сетевого запроса.
+Ключевое слово `await` приостанавливает задачу, сохраняя её состояние (приоритет и т.д.) для дальнейшего продолжения (continuation).
+Как только сетевой запрос успешно завершится, вернув данные, задача попадает в очередь своего исполнителя, для возобновления.
+В случае успеха (если URL адрес существует), мы увидим вывод: `Image size: 136 kB`
