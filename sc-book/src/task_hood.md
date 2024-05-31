@@ -82,13 +82,31 @@ Job Interface: The Job interface represents a unit of work that an executor can 
 После завершения приостановки `await`, задача попадает в очередь соответствующего исполнителя, который планирует возобновление задачи.
 Runtime восстанавливает состояние задачи, позволяя возобновить выполнение `async` функции с того места, где она (функция) была приостановлена.
 
+У каждой возобновляемой задачи имеется `ContinuationStatus`:
+
+```cpp
+/// Status values for a continuation.  Note that the "not yet"s in
+/// the description below aren't quite right because the system
+/// does not actually promise to update the status before scheduling
+/// the task.  This is because the continuation context is immediately
+/// invalidated once the task starts running again, so the window in
+/// which we can usefully protect against (say) double-resumption may
+/// be very small.
+enum class ContinuationStatus : size_t {
+  /// The continuation has not yet been awaited or resumed.
+  Pending = 0,
+
+  /// The continuation has already been awaited, but not yet resumed.
+  Awaited = 1,
+
+  /// The continuation has already been resumed, but not yet awaited.
+  Resumed = 2
+};
+```
+
 #### На конкретном примере
 
-Swift ensures thread safety by using synchronization primitives and careful state management in TaskStatusRecord and other concurrency constructs. This prevents race conditions and ensures that tasks are resumed correctly and safely.
-Executors manage task execution and ensure that resumption occurs on the correct thread or queue, maintaining the correctness of concurrent execution.
-
-
-Here is a simplified example illustrating task suspension and resumption in Swift:
+Посмотрите на код ниже:
 
 ```swift
 func fetchData() async throws -> Data {
@@ -107,3 +125,5 @@ Task {
 Ключевое слово `await` приостанавливает задачу, сохраняя её состояние (приоритет и т.д.) для дальнейшего продолжения (continuation).
 Как только сетевой запрос успешно завершится, вернув данные, задача попадает в очередь своего исполнителя, для возобновления.
 В случае успеха (если URL адрес существует), мы увидим вывод: `Image size: 136 kB`
+
+<!-- https://github.com/apple/swift/blob/main/include/swift/ABI/Task.h -->
