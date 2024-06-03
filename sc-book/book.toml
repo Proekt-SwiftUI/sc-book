@@ -1,7 +1,18 @@
 [book]
-authors = ["wmorgue"]
+authors = ["Nick Rossik"]
 language = "ru"
 multilingual = false
 src = "src"
 title = "Structured Concurrency не магия"
 create-missing = false
+
+[output.html.code.hidelines]
+swift = "#"
+
+[output.html]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
