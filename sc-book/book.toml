@@ -8,11 +8,12 @@ create-missing = false
 
 [output.html.code.hidelines]
 swift = "#"
+cpp = "#"
 
 [output.html]
 additional-js = ["mermaid.min.js", "mermaid-init.js"]
 
 [preprocessor]
-
+[preprocessor.alerts]
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
