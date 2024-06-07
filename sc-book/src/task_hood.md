@@ -85,6 +85,8 @@ Runtime восстанавливает состояние задачи, позв
 У каждой возобновляемой задачи имеется `ContinuationStatus`:
 
 ```cpp
+#https://github.com/apple/swift/blob/main/include/swift/ABI/Task.h
+#
 /// Status values for a continuation.  Note that the "not yet"s in
 /// the description below aren't quite right because the system
 /// does not actually promise to update the status before scheduling
@@ -124,6 +126,5 @@ Task {
 В нашем случаем `fetchData` — это асинхронная функция, которая приостанавливается при ожидании сетевого запроса.
 Ключевое слово `await` приостанавливает задачу, сохраняя её состояние (приоритет и т.д.) для дальнейшего продолжения (continuation).
 Как только сетевой запрос успешно завершится, вернув данные, задача попадает в очередь своего исполнителя, для возобновления.
-В случае успеха (если URL адрес существует), мы увидим вывод: `Image size: 136 kB`
 
-<!-- https://github.com/apple/swift/blob/main/include/swift/ABI/Task.h -->
+В случае успеха (если URL адрес существует), мы увидим вывод: `Image size: 136 kB`

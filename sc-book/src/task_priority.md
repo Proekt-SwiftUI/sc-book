@@ -35,7 +35,7 @@ func executeAt(priority: TaskPriority) async {
 }
 ```
 
-[medium_priority]: ../resources/medium_priority.png
-[high_priority]: ../resources/high_priority.png
+[medium_priority]: images/medium_priority.png
+[high_priority]: images/high_priority.png
 [priority_struct]: https://developer.apple.com/documentation/swift/taskpriority
 [detached_task]: https://developer.apple.com/documentation/swift/task/detached(priority:operation:)-3lvix

@@ -1,9 +1,9 @@
 # Оглавление
 
 - [Основы](./beginning.md)
+- [Unstructured concurrency](./unstructurred.md)
 - [Отмена задач](./task_cancellation.md)
 <!-- - [Async/await]() -->
-<!-- - [Unstructured concurrency]() -->
 <!-- - [Task]() -->
 - [Погружаемся глубже](./dive_deeper.md)
     - [Task под капотом](./task_hood.md)

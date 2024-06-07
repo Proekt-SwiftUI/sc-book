@@ -62,9 +62,9 @@ Structured concurrency (далее **SC**) позволяет рассуждат
 
 Про отмену задач сказано в [следующей главе](./task_cancellation.md).
 
-[StructVSunsctruct]: ../resources/sc_vs_uc.png
-[prepare_soup]: ../resources/prepare_soup.png
-[task_inside_func]: ../resources/task_inside_func.png
-[soup_with_sc]: ../resources/soup_with_sc.png
-[chop_ingridients]: ../resources/chopIngridients.png
-[task_tree]: ../resources/task_tree.png
+[StructVSunsctruct]: images/sc_vs_uc.png
+[prepare_soup]: images/prepare_soup.png
+[task_inside_func]: images/task_inside_func.png
+[soup_with_sc]: images/soup_with_sc.png
+[chop_ingridients]: images/chopIngridients.png
+[task_tree]: images/task_tree.png

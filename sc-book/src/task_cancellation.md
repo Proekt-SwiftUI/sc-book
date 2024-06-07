@@ -6,7 +6,8 @@
 
 ```swift
 typealias PartialAsyncTask = UnownedJob
-https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/PartialAsyncTask.swift#L16
+#
+#https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/PartialAsyncTask.swift#L16
 ```
 
 > Для взаимодействия с частичным результатом необходимо реализовать кастомный исполнитель (executor).
@@ -95,11 +96,11 @@ Cancellation is a purely Boolean state; there’s no way to include additional i
 [partial_task]: https://developer.apple.com/documentation/swift/partialasynctask
 [cancell_all]: https://developer.apple.com/documentation/swift/taskgroup/cancelall()
 [task_group]: https://developer.apple.com/documentation/swift/taskgroup
-[cancel_task]: ../resources/task_cancel.png
-[cancel_task_uc]: ../resources/task_cancel_uc.png
-[task_is_cancelled]: ../resources/task_is_cancelled.png
-[task_guard_error]: ../resources/task_guard_error.png
-[task_guard_continue]: ../resources/task_guard_continue.png
+[cancel_task]: images/task_cancel.png
+[cancel_task_uc]: images/task_cancel_uc.png
+[task_is_cancelled]: images/task_is_cancelled.png
+[task_guard_error]: images/task_guard_error.png
+[task_guard_continue]: images/task_guard_continue.png
 [check_cancellation]: https://developer.apple.com/documentation/swift/task/checkcancellation()
-[check_cancellation_img]: ../resources/checkCancellation.png
-[when_cancel]: ../resources/when_cancel.png
+[check_cancellation_img]: images/checkCancellation.png
+[when_cancel]: images/when_cancel.png
