@@ -34,3 +34,31 @@ static inline bool taskIsDetached(TaskCreateFlags createFlags, JobFlags jobFlags
   return taskIsUnstructured(createFlags, jobFlags) && !createFlags.copyTaskLocals();
 }
 ```
+
+### На примере
+
+Посмотрим на самом маленьком примере:
+
+```swift
+func makeNames() async -> [String] {
+	["Siri", "ChatGPT", "Vertex"]
+}
+
+async let names: [String] = makeNames() // 1
+await names // 2
+
+
+// Пример с настоящими данными
+async let data: Data = URLSession.shared.data(from: .init(string: "https://speedtest.selectel.ru/10MB")!).0
+let result = try await data
+
+print("Data size: \(result.count)")
+
+// или более короткой синтаксис
+// print("Data size: \(try await data)")
+```
+
+Под первым комментарием `// 1` мы создаем задачу с помощью `async let` синтаксиса. Важно понять, что в этом случае задача не приостанавливается, ключевое слово `await` отсутствует.
+Только во второй комментарии мы указываем ключевое слово `await`, с помощью которого задача приостанавливается и возвращает результат.
+
+Чуть ниже я указал пример с настоящими данными, попробуйте запустить его.
