@@ -3,6 +3,7 @@
 - [Основы](./beginning.md)
 - [Unstructured concurrency](./unstructurred.md)
 - [Отмена задач](./task_cancellation.md)
+- [Практика](./welcome_practice.md)
 <!-- - [Async/await]() -->
 <!-- - [Task]() -->
 - [Погружаемся глубже](./dive_deeper.md)
