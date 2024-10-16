@@ -10,8 +10,7 @@ after the task completes.
 Поэтому, в задачах редко нужно захватывать значения по слабой ссылке.
 <!-- Consequently, tasks rarely need to capture weak references to values. -->
 
-В примере ниже, нет необходимости захватывать актор по слабой ссылке, потому что при выходе из области видимости, задача не будет удерживать ссылку,
-разорвав цикл между задачей (Task) и актором.
+В примере ниже, нет необходимости захватывать актор по слабой ссылке, потому что при выходе из области видимости, задача не будет удерживать ссылку, разорвав цикл между задачей (Task) и актором.
 <!-- For example, in the following snippet of code it is not necessary to capture the actor as `weak`,
 because as the task completes it'll let go of the actor reference, breaking the
 reference cycle between the Task and the actor holding it. -->
