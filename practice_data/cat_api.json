@@ -1,0 +1,122 @@
+[
+    {
+        "id": 1,
+        "name": "Mittens",
+        "breed": "Siamese",
+        "photo_url": "https://example.com/cats/mittens.jpg"
+    },
+    {
+        "id": 2,
+        "name": "Whiskers",
+        "breed": "Maine Coon",
+        "photo_url": "https://example.com/cats/whiskers.jpg"
+    },
+    {
+        "id": 3,
+        "name": "Shadow",
+        "breed": "British Shorthair",
+        "photo_url": "https://example.com/cats/shadow.jpg"
+    },
+    {
+        "id": 4,
+        "name": "Tiger",
+        "breed": "Bengal",
+        "photo_url": "https://example.com/cats/tiger.jpg"
+    },
+    {
+        "id": 5,
+        "name": "Bella",
+        "breed": "Persian",
+        "photo_url": "https://example.com/cats/bella.jpg"
+    },
+    {
+        "id": 6,
+        "name": "Smokey",
+        "breed": "Russian Blue",
+        "photo_url": "https://example.com/cats/smokey.jpg"
+    },
+    {
+        "id": 7,
+        "name": "Luna",
+        "breed": "Sphynx",
+        "photo_url": "https://example.com/cats/luna.jpg"
+    },
+    {
+        "id": 8,
+        "name": "Simba",
+        "breed": "Savannah",
+        "photo_url": "https://example.com/cats/simba.jpg"
+    },
+    {
+        "id": 9,
+        "name": "Nala",
+        "breed": "Abyssinian",
+        "photo_url": "https://example.com/cats/nala.jpg"
+    },
+    {
+        "id": 10,
+        "name": "Oliver",
+        "breed": "Ragdoll",
+        "photo_url": "https://example.com/cats/oliver.jpg"
+    },
+    {
+        "id": 11,
+        "name": "Cleo",
+        "breed": "Egyptian Mau",
+        "photo_url": "https://example.com/cats/cleo.jpg"
+    },
+    {
+        "id": 12,
+        "name": "Salem",
+        "breed": "Bombay",
+        "photo_url": "https://example.com/cats/salem.jpg"
+    },
+    {
+        "id": 13,
+        "name": "Milo",
+        "breed": "Scottish Fold",
+        "photo_url": "https://example.com/cats/milo.jpg"
+    },
+    {
+        "id": 14,
+        "name": "Ginger",
+        "breed": "American Shorthair",
+        "photo_url": "https://example.com/cats/ginger.jpg"
+    },
+    {
+        "id": 15,
+        "name": "Oreo",
+        "breed": "Turkish Van",
+        "photo_url": "https://example.com/cats/oreo.jpg"
+    },
+    {
+        "id": 16,
+        "name": "Leo",
+        "breed": "Norwegian Forest",
+        "photo_url": "https://example.com/cats/leo.jpg"
+    },
+    {
+        "id": 17,
+        "name": "Loki",
+        "breed": "Devon Rex",
+        "photo_url": "https://example.com/cats/loki.jpg"
+    },
+    {
+        "id": 18,
+        "name": "Chloe",
+        "breed": "Balinese",
+        "photo_url": "https://example.com/cats/chloe.jpg"
+    },
+    {
+        "id": 19,
+        "name": "Pumpkin",
+        "breed": "Chartreux",
+        "photo_url": "https://example.com/cats/pumpkin.jpg"
+    },
+    {
+        "id": 20,
+        "name": "Peaches",
+        "breed": "Birman",
+        "photo_url": "https://example.com/cats/peaches.jpg"
+    }
+]
