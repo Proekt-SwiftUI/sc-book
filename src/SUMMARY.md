@@ -4,6 +4,7 @@
 - [Unstructured concurrency](./unstructurred.md)
 - [Отмена задач](./task_cancellation.md)
 - [Практика](./welcome_practice.md)
+    - [Практика с котом](./practice_cat.md)
 <!-- - [Async/await]() -->
 <!-- - [Task]() -->
 - [Погружаемся глубже](./dive_deeper.md)
