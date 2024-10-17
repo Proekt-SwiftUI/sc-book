@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">1.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">2.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">3.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">4.</strong> Практика</a></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">5.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">5.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">5.2.</strong> Async let под капотом</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Кооперативный тред пул</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Терминология</div></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">1.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">2.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">3.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">4.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">4.1.</strong> Практика с котом</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">5.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">5.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">5.2.</strong> Async let под капотом</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Кооперативный тред пул</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Терминология</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -584,25 +584,19 @@ Cancellation is a purely Boolean state; there’s no way to include additional i
 По мере продвижения, главы будут усложняться.</p>
 <ol>
 <li>
-<p>Fetch and Display Images
-Build an app that fetches images from an API like the Dog API and displays them in a collection view. Use async/await to handle the asynchronous network requests and update the UI when the images are loaded.</p>
+<p>В главе 4.1 мы рассмотрим написание собственного актора (хоть в книге мы не затрагиваем эту концепцию), загрузку изображения и декодирование объекта с помощью <code>async let</code> задач и группы задач <code>withTaskGroup</code>.</p>
 </li>
 <li>
-<p>Async Sequence Example
-Create an app that demonstrates the usage of async sequences in Swift. For example, you could build a chat app that receives messages asynchronously and displays them in a table view. Use AsyncSequence and AsyncIteratorProtocol to handle the message stream.</p>
+<p>В главе 4.2 AsyncSequence Example
+Пример с парсингом AsyncSequence</p>
 </li>
 <li>
 <p>Structured Concurrency with Tasks
-Develop an app that showcases structured concurrency using Swift's Task API. For instance, you could build a game where multiple tasks (representing different game elements) run concurrently. Use Task.detached or TaskGroup to manage the tasks and demonstrate task prioritization.</p>
+Различные фишки и приколы, разница между циклами и т.д.</p>
 </li>
 <li>
-<p>Пример использования API, <code>Codable</code>.</p>
-</li>
-<li>
-<p>Локальные уведомления <code>@preconcurrency</code>.</p>
-</li>
-<li>
-<p>Обработка подключения к сети — <code>AsyncStream</code>.</p>
+<p>Обработка подключения к сети — <code>AsyncStream</code>.
+Практический пример.</p>
 </li>
 <li>
 <p>Различные примеры с тестов компилятора. Async/Await in WebSockets</p>
@@ -612,6 +606,275 @@ Develop an app that showcases structured concurrency using Swift's Task API. For
 Create a sample app and write unit tests for its async/await logic. Use the new XCTest methods to run tests asynchronously and prevent deadlocks by awaiting expectations. This project will help you practice testing async/await code and learn best practices for unit testing concurrency.</p>
 </li>
 </ol>
+<div style="break-before: page; page-break-before: always;"></div><style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h3 id="Практика-async-let-и-withtaskgroup"><a class="header" href="#Практика-async-let-и-withtaskgroup">Практика: async let и withTaskGroup</a></h3>
+<p>В этой главе мы <strong>наглядно</strong> разберемся с реальными примерами, а так же поймем когда использоваться <code>async let</code>, а когда <code>withTaskGroup</code>.</p>
+<p>Пример приложения написан на самом современном стеке: <code>SwiftUI</code> и макросе <code>@Observation</code> для управления данными. Легенда: существует профиль кота и список имен других котов.
+Необходимо получить:</p>
+<ol>
+<li>аватарку кота</li>
+<li>список имен других котов.</li>
+</ol>
+<h4 id="actor-catdownloader"><a class="header" href="#actor-catdownloader">actor CatDownloader</a></h4>
+<p>Для этих целей я заранее подготовил актор <code>CatDownloader</code>, который будет скачивать аватарку и список котов.</p>
+<pre><code class="language-swift">struct Cat: Decodable, Identifiable {
+	let id: Int
+	let name: String
+	let breed: String
+	let photoUrl: String
+}
+
+actor CatDownloader {
+	var decoder: JSONDecoder {
+		let decoder = JSONDecoder()
+		decoder.keyDecodingStrategy = .convertFromSnakeCase
+		return decoder
+	}
+	
+	// Вы можете использовать собственный URL для аватарки
+	let avatarURL: URL = .init(string: "https://image.lexica.art/full_webp/4f696c7b-f280-43ce-80f0-dd211c7f553")!
+	let catAPI: URL = .init(string: "https://raw.githubusercontent.com/Proekt-SwiftUI/sc-book/refs/heads/main/practice_data/cat_api.json?token=GHSAT0AAAAAACY4C77IXVFZ522PDU33FK6AZYPWQEQ")!
+	
+	// Скачиваем аватарку кота. В случае неудачи — возвращаем nil
+	// Для простоты примера я не стал делать дополнительные проверки, статус код и прочее.
+	func donwloadCatAvatar() async throws -&gt; UIImage? {
+		let imageData: Data = try await URLSession.shared.data(for: .init(url: avatarURL)).0
+		
+		guard let catImage: UIImage = UIImage(data: imageData) else {
+			print("Картинка коцыка не найдена и/или не доступна")
+			return nil
+		}
+		
+		return catImage
+	}
+	
+	// Скачиваем список котов, декодируем в массив [Cat] и возвращаем результат
+	func getListOfCats() async throws -&gt; [Cat] {
+		let catsData: Data = try await URLSession.shared.data(for: .init(url: catAPI)).0
+		let cats: [Cat] = try decoder.decode([Cat].self, from: catsData)
+		return cats
+	}
+}
+</code></pre>
+<h4 id="class-catviewmodel"><a class="header" href="#class-catviewmodel">class CatViewModel</a></h4>
+<p>Для взаимодействия между актором и вьюхой, создадим <code>CatViewModel</code> с применением макроса <code>@Observable</code>:</p>
+<pre><code class="language-swift">@Observable
+final class CatViewModel {
+	let downloader = CatDownloader()
+	
+	var catImage: Image?
+	var listOfCats: [Cat] = []
+	
+	func downloadCatImage() async {
+		do {
+			guard let finalImage: UIImage = try await downloader.donwloadCatAvatar() else {
+				return
+			}
+			
+			await MainActor.run {
+				catImage = Image(uiImage: finalImage)
+			}
+			
+			print("Аватар кота загрузился")
+		} catch {
+			print(error.localizedDescription)
+		}
+	}
+	
+	func getListOfCats() async {
+		do {
+			let decodedCats: [Cat] = try await downloader.getListOfCats()
+			
+			await MainActor.run {
+				listOfCats = decodedCats
+			}
+			print("Список котов загрузился")
+		} catch {
+			print(error.localizedDescription)
+		}
+	}
+}
+</code></pre>
+<h4 id="magicwithcat--swiftui"><a class="header" href="#magicwithcat--swiftui">MagicWithCat + SwiftUI</a></h4>
+<p>Переходим к реализации графического представления:</p>
+<pre><code class="language-swift">struct MagicWithCat: View {
+	@State
+	private var catData = CatViewModel()
+	
+	var body: some View {
+		VStack {
+			CatImageView(image: catData.catImage)
+				.ignoresSafeArea(.all, edges: .top)
+			
+			Spacer()
+			
+			List(catData.listOfCats) { cat in
+				Text(cat.name)
+			}
+		}
+		.animation(.smooth, value: catData.catImage)
+		.task {
+			await catData.downloadCatImage()
+			await catData.getListOfCats()
+		}
+	}
+}
+
+struct CatImageView: View {
+	let image: Image?
+	
+	var body: some View {
+		if let image {
+			image
+				.resizable()
+				.aspectRatio(contentMode: .fill)
+				.frame(height: 350)
+				.clipShape(.rect(cornerRadius: 16))
+		} else {
+			RoundedRectangle(cornerRadius: 16)
+				.foregroundStyle(.secondary)
+				.frame(height: 350)
+				.overlay {
+					HStack {
+						Text("Loading cat image")
+							.font(.title2.bold())
+							.foregroundStyle(.white)
+						
+						ProgressView()
+							.tint(.white)
+							.padding(7)
+							.background(.secondary.opacity(0.25), in: .circle)
+					}
+				}
+		}
+	}
+}
+</code></pre>
+<p>Вы можете не обращать внимания на код вью. Самое интересное, как и загрузка данных, происходит в модификаторе <code>.task {…}</code>.
+При открытии превью канваса, мы увидим что первым загрузается аватар кота и после этого загружаются данные массива. В консоли вы увидите следующий вывод:</p>
+<pre><code class="language-text">Аватар кота загрузился
+Список котов загрузился
+</code></pre>
+<p>Несмотря на асинхронные методы, вызов этих методов осуществляется <strong>последовательно</strong>. Вы можете легко в этом убедиться, поменяв методы местами и в таком случае, список котов загрузиться первым, а после аватарка:</p>
+<pre><code class="language-swift">.task {
+    await catData.getListOfCats()
+    await catData.downloadCatImage()
+}
+</code></pre>
+<p><img src="images/practice_cat.png" alt="Cat Practice image" /></p>
+<p>Чтобы использовать современный параллелизм и загружать данные асинхронно (без ожидания предыдущей задачи), мы можем изменить вызов методов создав 2-е структурированные задачи с помощью <code>async let</code> синтаксиса. В таком случае, задача, которая завершила свое выполнение первой — отдаст результат (или неудачу) первой:</p>
+<pre><code class="language-swift">.task {
+    async let avatar: Void = catData.downloadCatImage()
+    async let cats: Void = catData.getListOfCats()
+    
+    await avatar
+    await cats
+}
+
+// Список котов загрузился
+// Аватар кота загрузился
+</code></pre>
+<h4 id="Рефакторинг"><a class="header" href="#Рефакторинг">Рефакторинг</a></h4>
+<p>Мы можем изменить нашу вью модель, добавив отдельный метод для примера выше.
+Такой способ оптимален, когда нет необходимости в большом кол-ве вызовов <code>async let</code> или цикле <code>for loop</code>:</p>
+<pre><code class="language-swift">// 1-ый способ
+// Подходит для небольшого кол-ва асинхронных вызовов.
+// Порядов вызова await не важен.
+func getDataViaAsyncLet() async {
+    async let image: Void = downloadCatImage()
+    async let cats: Void = getListOfCats()
+
+    await cats
+    await image
+}
+</code></pre>
+<p>И вызовем метод <code>getDataViaAsyncLet</code>:</p>
+<pre><code class="language-swift">.task {
+    await catData.getDataViaAsyncLet()
+}
+</code></pre>
+<p>Второй способ подходит, когда нам необходимо вызвать большое кол-во <code>async let</code> задач или требуется создать цикл <code>for await loop</code> для значительно большого кол-ва дочерних задач с помощью <code>TaskGroup</code>:</p>
+<pre><code class="language-swift">// 2-ой способ
+// В том случае, когда у нас много причин для создания async let задач
+// Поэтому можно воспользоваться taskGroup
+func downloadViaTaskGroup() async {
+    await withTaskGroup(of: Void.self) { group in
+        group.addTask { await self.downloadCatImage() }
+        group.addTask { await self.getListOfCats() }
+    }
+}
+</code></pre>
+<p>И вызываем в модификаторе <code>task</code>:</p>
+<pre><code class="language-swift">.task {
+    await catData.downloadViaTaskGroup()
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-alerts {
   padding: 8px 16px;
