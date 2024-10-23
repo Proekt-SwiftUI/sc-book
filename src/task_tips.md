@@ -1,3 +1,18 @@
+#### Hop to MainActor
+
+```swift
+func hopToMainActor(_ x: @escaping @MainActor () -> ()) {
+	typealias Func = () -> ()
+	let x2 = unsafeBitCast(x, to: Func.self)
+	x2()
+}
+
+@MainActor
+func another() async {
+	hopToMainActor { }
+}
+```
+
 #### Текущий приоритет задачи
 
 ```swift
@@ -41,16 +56,17 @@ Task priority = TaskPriority.high != fn TaskPriority.background
 
 ```swift
 func download10MB(id: Int) async throws -> Data {
-	print("Task #\(id) init")
-	
-	let startDate: Date = .now
-	let readmePath: String = "https://raw.githubusercontent.com/wmorgue/wmorgue/main/README.md"
+    let readmeURL = URL(string: "https://raw.githubusercontent.com/wmorgue/wmorgue/main/README.md")!
+    let startDate = Date()
+
+    print("Task #\(id) started downloading.")
 	
 	defer {
-		print("Task #\(id) downloaded 10MB file in: \(Date().timeIntervalSince(startDate))")
+		let duration = Date().timeIntervalSince(startDate)
+        print("Task #\(id) completed in \(duration) seconds.")
 	}
 	
-	return try await URLSession.shared.data(from: .init(string: readmePath)!).0
+	return try await URLSession.shared.data(from: readmeURL).0
 }
 
 for r in 0...10 {
@@ -64,28 +80,66 @@ for r in 0...10 {
   <summary>Вывод</summary>
 
 ```js
-Task #0 init
-Task #1 init
-Task #2 init
-Task #3 init
-Task #4 init
-Task #6 init
-Task #5 init
-Task #7 init
-Task #9 init
-Task #8 init
-Task #10 init
-Task #1 downloaded 10MB file in: 1.73592209815979
-Task #5 downloaded 10MB file in: 1.728861927986145
-Task #9 downloaded 10MB file in: 1.6747709512710571
-Task #10 downloaded 10MB file in: 1.6747210025787354
-Task #0 downloaded 10MB file in: 1.7362500429153442
-Task #6 downloaded 10MB file in: 1.7290979623794556
-Task #3 downloaded 10MB file in: 1.7360960245132446
-Task #4 downloaded 10MB file in: 1.735780954360962
-Task #7 downloaded 10MB file in: 1.7288060188293457
-Task #8 downloaded 10MB file in: 1.674907922744751
-Task #2 downloaded 10MB file in: 1.7363390922546387
+Task #1 started downloading.
+Task #2 started downloading.
+Task #7 started downloading.
+Task #0 started downloading.
+Task #4 started downloading.
+Task #6 started downloading.
+Task #5 started downloading.
+Task #3 started downloading.
+Task #10 started downloading.
+Task #9 started downloading.
+Task #8 started downloading.
+Task #5 completed in 1.651481032371521 seconds.
+Task #2 completed in 1.6585689783096313 seconds.
+Task #3 completed in 1.6518199443817139 seconds.
+Task #6 completed in 1.651737928390503 seconds.
+Task #4 completed in 1.651810884475708 seconds.
+Task #7 completed in 1.65175199508667 seconds.
+Task #0 completed in 1.6590250730514526 seconds.
+Task #1 completed in 1.658919095993042 seconds.
+Task #10 completed in 1.5991131067276 seconds.
+Task #8 completed in 1.5986690521240234 seconds.
+Task #9 completed in 1.5986000299453735 seconds.
+```
+
+</details>
+
+Но более правильным вариантом будет использование `withThrowingTaskGroup`:
+
+```swift
+await withThrowingTaskGroup(of: Data.self) { group in
+	for r in 0...10 {
+		try await group.addTask { try await download10MB(id: r) }
+	}
+}
+
+<details>
+  <summary>Вывод</summary>
+
+Task #3 started downloading.
+Task #2 started downloading.
+Task #1 started downloading.
+Task #6 started downloading.
+Task #5 started downloading.
+Task #0 started downloading.
+Task #4 started downloading.
+Task #7 started downloading.
+Task #10 started downloading.
+Task #8 started downloading.
+Task #9 started downloading.
+Task #0 completed in 1.0400439500808716 seconds.
+Task #6 completed in 1.0401649475097656 seconds.
+Task #1 completed in 1.0402040481567383 seconds.
+Task #8 completed in 1.0201719999313354 seconds.
+Task #10 completed in 1.0204299688339233 seconds.
+Task #9 completed in 1.0203959941864014 seconds.
+Task #7 completed in 1.040037989616394 seconds.
+Task #2 completed in 1.0401289463043213 seconds.
+Task #3 completed in 1.0400739908218384 seconds.
+Task #4 completed in 1.0400439500808716 seconds.
+Task #5 completed in 1.0400769710540771 seconds.
 ```
 
 </details>
