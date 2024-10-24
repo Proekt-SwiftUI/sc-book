@@ -19,7 +19,9 @@ func another() async {
 > [!NOTE]
 > unsafeBitCast — это низкоуровневое преобразование типов, которое позволяет преобразовать один тип в другой без проверки их совместимости.
 
-#### Текущий приоритет задачи
+#### Сравнение приоритета задачи
+
+Функция ниже служит для сравнения приоритета задачи:
 
 ```swift
 func executedAt(priority: TaskPriority) async {
@@ -58,7 +60,11 @@ Task priority = TaskPriority.high != fn TaskPriority.background
 
 </details>
 
-#### Task init
+Функция `executedAt(priority:)` проверяет текущий приоритет задачи через `Task.currentPriority` и сравнивает его с переданным значением priority. Если они не совпадают, она выводит сообщение в консоль и засыпает на одну секунду, повторяя проверку до тех пор, пока приоритеты не станут равными. В данном примере функция ожидает, пока текущий приоритет задачи не станет равен `.background`.
+
+#### Скачивание данных
+
+В примере кода функция `download10MB` загружает данные по URL и выводит время выполнения задачи. Использование конструкции `defer` гарантирует завершение задачи с записью времени сразу после завершения загрузки.
 
 ```swift
 func download10MB(id: Int) async throws -> Data {
@@ -112,7 +118,13 @@ Task #9 completed in 1.5986000299453735 seconds.
 
 </details>
 
-Но более правильным вариантом будет использование `withThrowingTaskGroup`:
+Но более правильным и оптимальным вариантом будет использование `withThrowingTaskGroup` вместо цикла `for` по нескольким причинам:
+
+1.	**Управление задачами**: `withThrowingTaskGroup` позволяет эффективно управлять группой асинхронных задач. В отличие от использования `Task` в цикле, где задачи работают независимо друг от друга, `TaskGroup` дает контроль над выполнением всех задач и их завершением, что упрощает управление асинхронностью.
+2.	**Конкурентная обработка**: Внутри `TaskGroup` задачи выполняются параллельно, и группа завершится только тогда, когда завершатся все задачи. Это предотвращает случайные ошибки, когда одна задача может завершиться раньше, чем другие, или если они не будут правильно синхронизированы.
+3.	**Обработка ошибок**: `withThrowingTaskGroup` встроенно обрабатывает ошибки. Если одна из задач выбросит исключение, выполнение всей группы завершится и управление будет передано обработчику ошибок. В цикле for без этой группы необходимо вручную следить за каждой задачей и обрабатывать ошибки индивидуально.
+4.	**Управление ресурсами**: `TaskGroup` использует встроенные механизмы для оптимизации использования ресурсов, предотвращая перегрузку системы созданием слишком большого количества параллельных задач, что делает его более эффективным.
+5.	**Чистота и простота кода**: С использованием `TaskGroup` код становится чище и проще для понимания, так как явным образом создается группа, в которой управляются все задачи, что повышает читаемость и сопровождаемость.
 
 ```swift
 await withThrowingTaskGroup(of: Data.self) { group in
@@ -120,10 +132,13 @@ await withThrowingTaskGroup(of: Data.self) { group in
 		try await group.addTask { try await download10MB(id: r) }
 	}
 }
+```
+
 
 <details>
-  <summary>Вывод</summary>
+  <summary>Вывод:</summary>
 
+```js
 Task #3 started downloading.
 Task #2 started downloading.
 Task #1 started downloading.
@@ -152,24 +167,38 @@ Task #5 completed in 1.0400769710540771 seconds.
 
 #### Работа с приоритетами
 
+В этом коде демонстрируется создание и выполнение асинхронных задач с разными приоритетами. Сначала определяется массив taskPriorities, содержащий приоритеты задач: `.userInitiated`, `.background`, и `.low`. Функция `makeEachTask` принимает приоритет задачи и асинхронную функцию, выводя сообщение о начале задачи с указанным приоритетом и выполняя переданную асинхронную функцию. Внутри блока `withTaskGroup` для каждого приоритета из массива создаются задачи, которые выполняются конкурентно. Для каждой задачи выводится сообщение о ее завершении. 
+
 ```swift
 let taskPriorities: [TaskPriority] = [.userInitiated, .background, .low]
 
 func makeEachTask(with priority: TaskPriority, fn: () async -> Void) async {
-	print("Init task with \(priority) priority")
+	print("Start task with \(priority) priority")
 	
 	await fn()
 }
 
-for prior in taskPriorities {
-	Task {
-		await makeEachTask(with: prior) {
-			print("Another job via \(prior.description)")
+await withTaskGroup(of: Void.self) { group in
+	for priority in taskPriorities {
+		await makeEachTask(with: priority) {
+			print("Finish task with \(priority.description) done")
 		}
 	}
 }
 ```
+<details>
+  <summary>Вывод</summary>
 
+```
+Start task with TaskPriority.high priority
+Finish task with TaskPriority.high done
+Start task with TaskPriority.background priority
+Finish task with TaskPriority.background done
+Start task with TaskPriority.low priority
+Finish task with TaskPriority.low done
+```
+
+</details>
 
 #### Проверка отмены у группы
 
