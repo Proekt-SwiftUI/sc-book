@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">1.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">2.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">3.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">4.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">4.1.</strong> Практика с котом</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">5.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">5.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">5.2.</strong> Async let под капотом</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Кооперативный тред пул</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Терминология</div></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">1.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">2.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">3.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">4.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">4.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">4.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">4.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">5.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">5.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">5.2.</strong> Async let под капотом</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Кооперативный тред пул</div></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -587,8 +587,7 @@ Cancellation is a purely Boolean state; there’s no way to include additional i
 <p>В главе 4.1 мы рассмотрим написание собственного актора (хоть в книге мы не затрагиваем эту концепцию), загрузку изображения и декодирование объекта с помощью <code>async let</code> задач и группы задач <code>withTaskGroup</code>.</p>
 </li>
 <li>
-<p>В главе 4.2 AsyncSequence Example
-Пример с парсингом AsyncSequence</p>
+<p>В главе 4.2 материал о технологии <code>AsyncSequence</code>, который объясняет её концепцию, основные сценарии использования и дает практические примеры.</p>
 </li>
 <li>
 <p>Structured Concurrency with Tasks
@@ -674,15 +673,15 @@ Create a sample app and write unit tests for its async/await logic. Use the new 
 
 </style>
 <h3 id="Практика-async-let-и-withtaskgroup"><a class="header" href="#Практика-async-let-и-withtaskgroup">Практика: async let и withTaskGroup</a></h3>
-<p>В этой главе мы <strong>наглядно</strong> разберемся с реальными примерами, а так же поймем когда использоваться <code>async let</code>, а когда <code>withTaskGroup</code>.</p>
-<p>Пример приложения написан на самом современном стеке: <code>SwiftUI</code> и макросе <code>@Observation</code> для управления данными. Легенда: существует профиль кота и список имен других котов.
+<p>В этой главе мы <strong>наглядно</strong> разберемся с реальными примерами и поймем, когда использовать <code>async let</code>, а когда <code>withTaskGroup</code>.</p>
+<p>Пример приложения написан на современном стеке: <code>SwiftUI</code> и макросе <code>@Observable</code> для управления данными. Легенда: существует профиль кота и список имен других котов.
 Необходимо получить:</p>
 <ol>
-<li>аватарку кота</li>
-<li>список имен других котов.</li>
+<li>Аватарку кота.</li>
+<li>Список имен других котов.</li>
 </ol>
 <h4 id="actor-catdownloader"><a class="header" href="#actor-catdownloader">actor CatDownloader</a></h4>
-<p>Для этих целей я заранее подготовил актор <code>CatDownloader</code>, который будет скачивать аватарку и список котов.</p>
+<p>Для загрузки данных я подготовил актор <code>CatDownloader</code>, который будет скачивать аватарку и список котов.</p>
 <pre><code class="language-swift">struct Cat: Decodable, Identifiable {
 	let id: Int
 	let name: String
@@ -697,17 +696,16 @@ actor CatDownloader {
 		return decoder
 	}
 	
-	// Вы можете использовать собственный URL для аватарки
+	// URL для аватарки
 	let avatarURL: URL = .init(string: "https://image.lexica.art/full_webp/4f696c7b-f280-43ce-80f0-dd211c7f553")!
 	let catAPI: URL = .init(string: "https://raw.githubusercontent.com/Proekt-SwiftUI/sc-book/refs/heads/main/practice_data/cat_api.json?token=GHSAT0AAAAAACY4C77IXVFZ522PDU33FK6AZYPWQEQ")!
 	
-	// Скачиваем аватарку кота. В случае неудачи — возвращаем nil
-	// Для простоты примера я не стал делать дополнительные проверки, статус код и прочее.
-	func donwloadCatAvatar() async throws -&gt; UIImage? {
+	// Скачиваем аватарку кота. В случае неудачи возвращаем nil
+	func downloadCatAvatar() async throws -&gt; UIImage? {
 		let imageData: Data = try await URLSession.shared.data(for: .init(url: avatarURL)).0
 		
 		guard let catImage: UIImage = UIImage(data: imageData) else {
-			print("Картинка коцыка не найдена и/или не доступна")
+			print("Картинка кота не найдена и/или не доступна")
 			return nil
 		}
 		
@@ -733,7 +731,7 @@ final class CatViewModel {
 	
 	func downloadCatImage() async {
 		do {
-			guard let finalImage: UIImage = try await downloader.donwloadCatAvatar() else {
+			guard let finalImage: UIImage = try await downloader.downloadCatAvatar() else {
 				return
 			}
 			
@@ -762,7 +760,7 @@ final class CatViewModel {
 }
 </code></pre>
 <h4 id="magicwithcat--swiftui"><a class="header" href="#magicwithcat--swiftui">MagicWithCat + SwiftUI</a></h4>
-<p>Переходим к реализации графического представления:</p>
+<p>Теперь создадим графический интерфейс:</p>
 <pre><code class="language-swift">struct MagicWithCat: View {
 	@State
 	private var catData = CatViewModel()
@@ -816,19 +814,18 @@ struct CatImageView: View {
 	}
 }
 </code></pre>
-<p>Вы можете не обращать внимания на код вью. Самое интересное, как и загрузка данных, происходит в модификаторе <code>.task {…}</code>.
-При открытии превью канваса, мы увидим что первым загрузается аватар кота и после этого загружаются данные массива. В консоли вы увидите следующий вывод:</p>
+<p>Основное внимание стоит уделить модификатору .task {…}, где происходит загрузка данных. Сначала загружается аватар кота, затем список имен. В консоли вы увидите:</p>
 <pre><code class="language-text">Аватар кота загрузился
 Список котов загрузился
 </code></pre>
-<p>Несмотря на асинхронные методы, вызов этих методов осуществляется <strong>последовательно</strong>. Вы можете легко в этом убедиться, поменяв методы местами и в таком случае, список котов загрузиться первым, а после аватарка:</p>
+<p>Это происходит последовательно, так как сначала выполняется первая задача <code>downloadCatImage()</code>, а затем вторая <code>getListOfCats()</code>. Мы можем поменять их местами, чтобы сначала загружался список:</p>
 <pre><code class="language-swift">.task {
     await catData.getListOfCats()
     await catData.downloadCatImage()
 }
 </code></pre>
 <p><img src="images/practice_cat.png" alt="Cat Practice image" /></p>
-<p>Чтобы использовать современный параллелизм и загружать данные асинхронно (без ожидания предыдущей задачи), мы можем изменить вызов методов создав 2-е структурированные задачи с помощью <code>async let</code> синтаксиса. В таком случае, задача, которая завершила свое выполнение первой — отдаст результат (или неудачу) первой:</p>
+<p>Чтобы сделать вызовы параллельными, мы можем использовать <code>async let</code>. Тогда обе задачи будут выполняться одновременно:</p>
 <pre><code class="language-swift">.task {
     async let avatar: Void = catData.downloadCatImage()
     async let cats: Void = catData.getListOfCats()
@@ -841,11 +838,11 @@ struct CatImageView: View {
 // Аватар кота загрузился
 </code></pre>
 <h4 id="Рефакторинг"><a class="header" href="#Рефакторинг">Рефакторинг</a></h4>
-<p>Мы можем изменить нашу вью модель, добавив отдельный метод для примера выше.
-Такой способ оптимален, когда нет необходимости в большом кол-ве вызовов <code>async let</code> или цикле <code>for loop</code>:</p>
-<pre><code class="language-swift">// 1-ый способ
-// Подходит для небольшого кол-ва асинхронных вызовов.
-// Порядов вызова await не важен.
+<ol>
+<li>Пример с <code>async let</code></li>
+</ol>
+<p>Этот метод хорош для небольшого числа асинхронных задач, где порядок выполнения не имеет значения:</p>
+<pre><code class="language-swift">// Подходит для небольшого количества задач, порядок вызова await не важен
 func getDataViaAsyncLet() async {
     async let image: Void = downloadCatImage()
     async let cats: Void = getListOfCats()
@@ -854,15 +851,16 @@ func getDataViaAsyncLet() async {
     await image
 }
 </code></pre>
-<p>И вызовем метод <code>getDataViaAsyncLet</code>:</p>
+<p>Вызовем задачу:</p>
 <pre><code class="language-swift">.task {
     await catData.getDataViaAsyncLet()
 }
 </code></pre>
-<p>Второй способ подходит, когда нам необходимо вызвать большое кол-во <code>async let</code> задач или требуется создать цикл <code>for await loop</code> для значительно большого кол-ва дочерних задач с помощью <code>TaskGroup</code>:</p>
-<pre><code class="language-swift">// 2-ой способ
-// В том случае, когда у нас много причин для создания async let задач
-// Поэтому можно воспользоваться taskGroup
+<ol start="2">
+<li>Пример с withTaskGroup</li>
+</ol>
+<p>Этот метод полезен, когда требуется большое количество асинхронных вызовов или работа с циклами:</p>
+<pre><code class="language-swift">// Подходит для большого количества задач или работы с циклами
 func downloadViaTaskGroup() async {
     await withTaskGroup(of: Void.self) { group in
         group.addTask { await self.downloadCatImage() }
@@ -870,10 +868,719 @@ func downloadViaTaskGroup() async {
     }
 }
 </code></pre>
-<p>И вызываем в модификаторе <code>task</code>:</p>
+<p>Вызовем задачу:</p>
 <pre><code class="language-swift">.task {
     await catData.downloadViaTaskGroup()
 }
+</code></pre>
+<h4 id="Когда-использовать-async-let-и-когда-withtaskgroup"><a class="header" href="#Когда-использовать-async-let-и-когда-withtaskgroup">Когда использовать async let и когда withTaskGroup</a></h4>
+<ul>
+<li>async let — подходит для параллельного выполнения небольшого количества задач, когда порядок завершения не важен. Хорошо, если задачи не зависят друг от друга.</li>
+<li>withTaskGroup — используется для более сложных сценариев, когда нужно динамически создавать и управлять задачами, например, при большом количестве запросов или циклах с дочерними задачами.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h3 id="Практика-asyncsequence"><a class="header" href="#Практика-asyncsequence">Практика: AsyncSequence</a></h3>
+<p>В этой главе мы разберем технологию <code>AsyncSequence</code> в Swift, которая позволяет работать с последовательностями данных асинхронно. AsyncSequence полезен, когда нам нужно получать данные постепенно или по частям, например, при чтении из потока данных или получении событий. Мы рассмотрим реальные примеры использования и узнаем, как управлять асинхронными последовательностями.</p>
+<h4 id="Что-такое-asyncsequence"><a class="header" href="#Что-такое-asyncsequence">Что такое AsyncSequence?</a></h4>
+<p><code>AsyncSequence</code> — это протокол, который предоставляет интерфейс для асинхронного итератора. Вместо того чтобы возвращать все элементы сразу, как обычные последовательности <code>Sequence</code>, <code>AsyncSequence</code> возвращает элементы по одному, позволяя обрабатывать их асинхронно.</p>
+<p>Это особенно полезно для работы с операциями, которые могут занять неопределенное время, например:</p>
+<ul>
+<li>Сетевые запросы с постепенным поступлением данных.</li>
+<li>Потоки данных, такие как события или сообщения.</li>
+<li>Чтение файлов или данных из внешних источников.</li>
+</ul>
+<h4 id="Основные-концепции"><a class="header" href="#Основные-концепции">Основные концепции</a></h4>
+<ul>
+<li><code>AsyncIterator</code> — объект, который итерирует через элементы асинхронной последовательности.</li>
+<li><code>for await</code> — специальная конструкция для итерации по элементам AsyncSequence.</li>
+</ul>
+<h4 id="network-status"><a class="header" href="#network-status">Network status</a></h4>
+<p>Давайте рассмотрим простой пример асинхронной последовательности, которая используется для отслеживания статуса сети в реальном времени.
+Этот подход позволяет нам удобно и эффективно обрабатывать изменения в статусе интернет-соединения.</p>
+<pre><code class="language-swift">extension NWPath.Status {
+	var isConnected: Bool {
+		self != .satisfied
+	}
+}
+
+struct NetworkStatus: AsyncSequence {
+	typealias Element = Bool
+
+	func makeAsyncIterator() -&gt; AsyncStream&lt;Element&gt;.Iterator {
+		let monitor = NWPathMonitor()
+		let monitorQueue = DispatchQueue(label: String(describing: Self.self) + "Queue")
+
+		return AsyncStream { continuation in
+			monitor.pathUpdateHandler = { path in
+				continuation.yield(path.status.isConnected)
+			}
+
+			monitor.start(queue: monitorQueue)
+
+			continuation.onTermination = { @Sendable _ in
+				monitor.cancel()
+			}
+		}
+		.makeAsyncIterator()
+	}
+}
+</code></pre>
+<ol>
+<li>
+<p><code>NetworkStatus</code> реализует протокол AsyncSequence. Протокол <code>AsyncSequence</code> требует реализации типа алиаса <code>Element</code> (является типом данных <code>Bool</code>) и метод <code>makeAsyncIterator()</code>. Последний возвращает асинхронный итератор, который будет управлять последовательностью значений.</p>
+</li>
+<li>
+<p>В основе нашего подхода лежит <code>NWPathMonitor</code> из фреймворка <code>Network</code>, который предназначен для отслеживания статуса сети. Этот монитор позволяет следить за изменениями подключения, включая переключения между Wi-Fi, сотовой связью и отсутствием сети.</p>
+</li>
+</ol>
+<ul>
+<li><code>monitor.pathUpdateHandler</code>: данный обработчик вызывается каждый раз, когда происходит изменение состояния сети. Мы используем его, чтобы передать новое значение состояния через <code>continuation.yield</code>.</li>
+<li><code>monitor.start(queue:)</code>: для запуска <code>NWPathMonitor</code> необходимо указать, в каком потоке (очереди) будет обрабатываться его работа. Здесь используется очередь <code>DispatchQueue</code>, специально созданная для мониторинга.</li>
+</ul>
+<ol start="3">
+<li>Асинхронные последовательности (sequence), такие как <code>AsyncStream</code>, обеспечивают удобный способ создания и управления последовательными данными, которые асинхронно поступают во времени. В нашем коде <code>AsyncStream</code> создаёт поток значений на основе изменений статуса сети. Этот поток затем возвращает итератор, который мы передаём дальше.</li>
+</ol>
+<ul>
+<li><code>continuation.yield</code>: передаёт данные (в данном случае — состояние сети) асинхронно в поток, когда изменяется статус сети.</li>
+<li><code>continuation.onTermination</code>: обрабатывает завершение потока. Когда поток завершён, монитор сети <code>NWPathMonitor</code> останавливается с помощью метода <code>cancel()</code>.</li>
+</ul>
+<h4 id="Использование"><a class="header" href="#Использование">Использование</a></h4>
+<p>Используя асинхронный цикл <code>for await</code>, мы можем последовательно получать значения состояния сети. Этот цикл будет постоянно ждать изменения состояния и реагировать на него.</p>
+<pre><code class="language-swift">var isNetworkAvailable: Bool = false
+
+for await networkAlive in NetworkStatus() {
+    isNetworkAvailable = networkAlive
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><style>
+.mdbook-alerts {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-left: 0.25em solid var(--mdbook-alerts-color);
+}
+
+.mdbook-alerts > *:first-child {
+  margin-top: 0;
+}
+
+.mdbook-alerts > *:last-child {
+  margin-bottom: 0;
+}
+
+.mdbook-alerts-title {
+  display: flex;
+  font-weight: 600;
+  align-items: center;
+  line-height: 1;
+  color: var(--mdbook-alerts-color);
+  text-transform: capitalize;
+}
+
+.mdbook-alerts-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / 100%;
+  mask: no-repeat center / 100%;
+  -webkit-mask-image: var(--mdbook-alerts-icon);
+  mask-image: var(--mdbook-alerts-icon);
+}
+
+.mdbook-alerts-note {
+  --mdbook-alerts-color: rgb(9, 105, 218);
+  /* https://icon-sets.iconify.design/material-symbols/info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11q-.425 0-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8q0 .425.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12q0-3.35-2.325-5.675T12 4Q8.65 4 6.325 6.325T4 12q0 3.35 2.325 5.675T12 20m0-8"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-tip {
+  --mdbook-alerts-color: rgb(26, 127, 55);
+  /* https://icon-sets.iconify.design/material-symbols/lightbulb-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 22q-.825 0-1.412-.587T10 20h4q0 .825-.587 1.413T12 22m-3-3q-.425 0-.712-.288T8 18q0-.425.288-.712T9 17h6q.425 0 .713.288T16 18q0 .425-.288.713T15 19zm-.75-3q-1.725-1.025-2.738-2.75T4.5 9.5q0-3.125 2.188-5.312T12 2q3.125 0 5.313 2.188T19.5 9.5q0 2.025-1.012 3.75T15.75 16zm.6-2h6.3q1.125-.8 1.738-1.975T17.5 9.5q0-2.3-1.6-3.9T12 4Q9.7 4 8.1 5.6T6.5 9.5q0 1.35.613 2.525T8.85 14M12 14"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-important {
+  --mdbook-alerts-color: rgb(130, 80, 223);
+  /* https://icon-sets.iconify.design/material-symbols/chat-info-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 7q.425 0 .713-.288T13 6q0-.425-.288-.712T12 5q-.425 0-.712.288T11 6q0 .425.288.713T12 7m0 8q.425 0 .713-.288T13 14v-4q0-.425-.288-.712T12 9q-.425 0-.712.288T11 10v4q0 .425.288.713T12 15m-6 3l-2.3 2.3q-.475.475-1.088.213T2 19.575V4q0-.825.588-1.412T4 2h16q.825 0 1.413.588T22 4v12q0 .825-.587 1.413T20 18zm-.85-2H20V4H4v13.125zM4 16V4z"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-warning {
+  --mdbook-alerts-color: rgb(154, 103, 0);
+  /* https://icon-sets.iconify.design/material-symbols/warning-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M2.725 21q-.275 0-.5-.137t-.35-.363q-.125-.225-.137-.488t.137-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137zm1.725-2h15.1L12 6zM12 18q.425 0 .713-.288T13 17q0-.425-.288-.712T12 16q-.425 0-.712.288T11 17q0 .425.288.713T12 18m0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.712T12 10q-.425 0-.712.288T11 11v3q0 .425.288.713T12 15m0-2.5"%2F%3E%3C%2Fsvg%3E');
+}
+
+.mdbook-alerts-caution {
+  --mdbook-alerts-color: rgb(207, 34, 46);
+  /* https://icon-sets.iconify.design/material-symbols/brightness-alert-outline-rounded/ */
+  --mdbook-alerts-icon: url('data:image/svg+xml,%3Csvg xmlns="http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="currentColor" d="M12 17q.425 0 .713-.288T13 16q0-.425-.288-.712T12 15q-.425 0-.712.288T11 16q0 .425.288.713T12 17m0-4q.425 0 .713-.288T13 12V8q0-.425-.288-.712T12 7q-.425 0-.712.288T11 8v4q0 .425.288.713T12 13m-3.35 7H6q-.825 0-1.412-.587T4 18v-2.65L2.075 13.4q-.275-.3-.425-.662T1.5 12q0-.375.15-.737t.425-.663L4 8.65V6q0-.825.588-1.412T6 4h2.65l1.95-1.925q.3-.275.663-.425T12 1.5q.375 0 .738.15t.662.425L15.35 4H18q.825 0 1.413.588T20 6v2.65l1.925 1.95q.275.3.425.663t.15.737q0 .375-.15.738t-.425.662L20 15.35V18q0 .825-.587 1.413T18 20h-2.65l-1.95 1.925q-.3.275-.662.425T12 22.5q-.375 0-.737-.15t-.663-.425zm.85-2l2.5 2.5l2.5-2.5H18v-3.5l2.5-2.5L18 9.5V6h-3.5L12 3.5L9.5 6H6v3.5L3.5 12L6 14.5V18zm2.5-6"%2F%3E%3C%2Fsvg%3E');
+}
+
+</style>
+<h3 id="Трюки-и-полезное"><a class="header" href="#Трюки-и-полезное">Трюки и полезное</a></h3>
+<p>В этой главе будут рассмотрены различные трюки и куски кода, которые можно использовать в различных ситуациях.</p>
+<h4 id="hop-to-mainactor"><a class="header" href="#hop-to-mainactor">Hop to MainActor</a></h4>
+<p>Функция <code>hopToMainActor(_:)</code> с помощью <code>unsafeBitCast</code> обходит проверку компилятора на выполнение замыкания с <code>@MainActor</code> на главном потоке, преобразуя его в обычное замыкание <code>() -&gt; ()</code>.
+Это позволяет выполнить замыкание в любом потоке, нарушая акторную изоляцию и потенциально создавая проблемы с потокобезопасностью.</p>
+<pre><code class="language-swift">func hopToMainActor(_ x: @escaping @MainActor () -&gt; ()) {
+	typealias Func = () -&gt; ()
+	let x2 = unsafeBitCast(x, to: Func.self)
+	x2()
+}
+
+@MainActor
+func another() async {
+	hopToMainActor { }
+}
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>unsafeBitCast — это низкоуровневое преобразование типов, которое позволяет преобразовать один тип в другой без проверки их совместимости.</p>
+</div>
+<h4 id="Сравнение-приоритета-задачи"><a class="header" href="#Сравнение-приоритета-задачи">Сравнение приоритета задачи</a></h4>
+<p>Функция ниже служит для сравнения приоритета задачи:</p>
+<pre><code class="language-swift">func executedAt(priority: TaskPriority) async {
+    print("START 🔦:")
+    let currentPrioprity = Task.currentPriority
+    
+    while (priority != currentPrioprity) {
+        print("Task priority = \(currentPrioprity) != fn \(priority)")
+        try? await Task.sleep(for: .seconds(1))
+    }
+}
+
+await executedAt(priority: .background)
+</code></pre>
+<details>
+  <summary>Вывод</summary>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>START 🔦:
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+Task priority = TaskPriority.high != fn TaskPriority.background
+…
+<span class="boring">}</span></code></pre></pre>
+</details>
+<p>Функция <code>executedAt(priority:)</code> проверяет текущий приоритет задачи через свойство <code>Task.currentPriority</code> и сравнивает его (приоритет) с переданным значением <code>priority</code>. Если они не совпадают, она выводит сообщение в консоль и засыпает на одну секунду, повторяя проверку до тех пор, пока приоритеты не станут равными. В данном примере функция ожидает, пока текущий приоритет задачи не станет равен <code>.background</code>.</p>
+<h4 id="Скачивание-данных"><a class="header" href="#Скачивание-данных">Скачивание данных</a></h4>
+<p>В примере кода функция <code>download10MB</code> загружает данные по URL и выводит время выполнения задачи. В операторе <code>defer</code> мы выводим время завершения работы задачи.</p>
+<pre><code class="language-swift">func download10MB(id: Int) async throws -&gt; Data {
+    let readmeURL = URL(string: "https://raw.githubusercontent.com/wmorgue/wmorgue/main/README.md")!
+    let startDate = Date()
+
+    print("Task #\(id) started downloading.")
+	
+	defer {
+		let duration = Date().timeIntervalSince(startDate)
+        print("Task #\(id) completed in \(duration) seconds.")
+	}
+	
+	return try await URLSession.shared.data(from: readmeURL).0
+}
+
+for r in 0...10 {
+	Task {
+		try await download10MB(id: r)
+	}
+}
+</code></pre>
+<details>
+  <summary>Вывод</summary>
+<pre><code class="language-js">Task #1 started downloading.
+Task #2 started downloading.
+Task #7 started downloading.
+Task #0 started downloading.
+Task #4 started downloading.
+Task #6 started downloading.
+Task #5 started downloading.
+Task #3 started downloading.
+Task #10 started downloading.
+Task #9 started downloading.
+Task #8 started downloading.
+Task #5 completed in 1.651481032371521 seconds.
+Task #2 completed in 1.6585689783096313 seconds.
+Task #3 completed in 1.6518199443817139 seconds.
+Task #6 completed in 1.651737928390503 seconds.
+Task #4 completed in 1.651810884475708 seconds.
+Task #7 completed in 1.65175199508667 seconds.
+Task #0 completed in 1.6590250730514526 seconds.
+Task #1 completed in 1.658919095993042 seconds.
+Task #10 completed in 1.5991131067276 seconds.
+Task #8 completed in 1.5986690521240234 seconds.
+Task #9 completed in 1.5986000299453735 seconds.
+</code></pre>
+</details>
+<p>Но более правильным и оптимальным вариантом будет использование <code>withThrowingTaskGroup</code> вместо цикла <code>for</code> по нескольким причинам:</p>
+<ol>
+<li><strong>Управление задачами</strong>: <code>withThrowingTaskGroup</code> позволяет эффективно управлять группой асинхронных задач. В отличие от использования <code>Task</code> в цикле, где задачи работают независимо друг от друга, <code>TaskGroup</code> дает контроль над выполнением всех задач и их завершением, что упрощает управление асинхронностью.</li>
+<li><strong>Конкурентная обработка</strong>: Внутри <code>TaskGroup</code> задачи выполняются параллельно, и группа завершится только тогда, когда завершатся все задачи. Это предотвращает случайные ошибки, когда одна задача может завершиться раньше, чем другие, или если они не будут правильно синхронизированы.</li>
+<li><strong>Обработка ошибок</strong>: <code>withThrowingTaskGroup</code> встроенно обрабатывает ошибки. Если одна из задач выбросит исключение, выполнение всей группы завершится и управление будет передано обработчику ошибок. В цикле for без этой группы необходимо вручную следить за каждой задачей и обрабатывать ошибки индивидуально.</li>
+<li><strong>Управление ресурсами</strong>: <code>TaskGroup</code> использует встроенные механизмы для оптимизации использования ресурсов, предотвращая перегрузку системы созданием слишком большого количества параллельных задач, что делает его более эффективным.</li>
+<li><strong>Чистота и простота кода</strong>: С использованием <code>TaskGroup</code> код становится чище и проще для понимания, так как явным образом создается группа, в которой управляются все задачи, что повышает читаемость и сопровождаемость.</li>
+</ol>
+<pre><code class="language-swift">await withThrowingTaskGroup(of: Data.self) { group in
+	for r in 0...10 {
+		try await group.addTask { try await download10MB(id: r) }
+	}
+}
+</code></pre>
+<details>
+  <summary>Вывод</summary>
+<pre><code class="language-js">Task #3 started downloading.
+Task #2 started downloading.
+Task #1 started downloading.
+Task #6 started downloading.
+Task #5 started downloading.
+Task #0 started downloading.
+Task #4 started downloading.
+Task #7 started downloading.
+Task #10 started downloading.
+Task #8 started downloading.
+Task #9 started downloading.
+Task #0 completed in 1.0400439500808716 seconds.
+Task #6 completed in 1.0401649475097656 seconds.
+Task #1 completed in 1.0402040481567383 seconds.
+Task #8 completed in 1.0201719999313354 seconds.
+Task #10 completed in 1.0204299688339233 seconds.
+Task #9 completed in 1.0203959941864014 seconds.
+Task #7 completed in 1.040037989616394 seconds.
+Task #2 completed in 1.0401289463043213 seconds.
+Task #3 completed in 1.0400739908218384 seconds.
+Task #4 completed in 1.0400439500808716 seconds.
+Task #5 completed in 1.0400769710540771 seconds.
+</code></pre>
+</details>
+<h4 id="Работа-с-приоритетами"><a class="header" href="#Работа-с-приоритетами">Работа с приоритетами</a></h4>
+<p>В этом коде демонстрируется создание и выполнение асинхронных задач с разными приоритетами.
+Сначала определяется массив <code>taskPriorities</code>, содержащий приоритеты задач: <code>.userInitiated</code>, <code>.background</code> и <code>.low</code>.
+Функция <code>makeEachTask</code> принимает приоритет задачи и асинхронную функцию, выводя сообщение о начале задачи с указанным приоритетом и выполняя переданную асинхронную функцию.
+Внутри блока <code>withTaskGroup</code> для каждого приоритета из массива создаются задачи, которые выполняются конкурентно.</p>
+<pre><code class="language-swift">let taskPriorities: [TaskPriority] = [.userInitiated, .background, .low]
+
+func makeEachTask(with priority: TaskPriority, fn: () async -&gt; Void) async {
+	print("Start task with \(priority) priority")
+	
+	await fn()
+}
+
+await withTaskGroup(of: Void.self) { group in
+	for priority in taskPriorities {
+		await makeEachTask(with: priority) {
+			print("Finish task with \(priority.description) done")
+		}
+	}
+}
+</code></pre>
+<p>Каждая задача выводит сообщение о своем завершении.</p>
+<details>
+  <summary>Вывод</summary>
+<pre><code>Start task with TaskPriority.high priority
+Finish task with TaskPriority.high done
+Start task with TaskPriority.background priority
+Finish task with TaskPriority.background done
+Start task with TaskPriority.low priority
+Finish task with TaskPriority.low done
+</code></pre>
+</details>
+<h4 id="Проверка-отмены-у-группы"><a class="header" href="#Проверка-отмены-у-группы">Проверка отмены у группы</a></h4>
+<pre><code class="language-swift">func test_detach_cancel_taskGroup() async {
+  print(#function) // CHECK: test_detach_cancel_taskGroup
+
+  await withTaskGroup(of: Void.self) { group in
+    group.cancelAll() // immediately cancel the group
+    print("group.cancel()") // CHECK: group.cancel()
+
+    group.addTask {
+      // immediately cancelled child task...
+      await withTaskCancellationHandler {
+        print("child: operation, was cancelled: \(Task.isCancelled)")
+      } onCancel: {
+        print("child: onCancel, was cancelled: \(Task.isCancelled)")
+      }
+    }
+    // CHECK: child: onCancel, was cancelled: true
+    // CHECK: child: operation, was cancelled: true
+  }
+
+  print("done") // CHECK: done
+}
+
+await test_detach_cancel_taskGroup()
+</code></pre>
+<h4 id="worker"><a class="header" href="#worker">Worker</a></h4>
+<pre><code class="language-swift">struct EmptyResult {}
+
+actor Worker {
+	var workerTask: Task&lt;Void, Never&gt;?
+	var result: EmptyResult?
+	
+	deinit {
+		assert(workerTask != nil)
+		print("Retain count = ", _getRetainCount(Worker.self))
+		print("Weak Retain count = ", _getWeakRetainCount(Worker.self))
+		print("deinit actor")
+	}
+	
+	func execute() {
+		workerTask = Task {
+			print("начало работы задачи")
+			try? await Task.sleep(for: .seconds(1))
+			
+			self.result = EmptyResult()
+			print("конец работы, выход из области видимости")
+		}
+	}
+}
+</code></pre>
+<h4 id="Управление-задачей-при-помощи-taskyeild"><a class="header" href="#Управление-задачей-при-помощи-taskyeild">Управление задачей при помощи Task.yeild()</a></h4>
+<p>При использовании акторов иногда требуется явно приостановить выполнение задачи, чтобы обеспечить равномерное распределение ресурсов и дать другим задачам возможность выполняться.
+Для этого используется метод <code>Task.yield()</code>, который позволяет текущей задаче приостановиться и уступить выполнение другим задачам, ожидающим своей очереди.</p>
+<pre><code class="language-swift">protocol Start: Actor {
+	func start(times: Int) async -&gt; Int
+}
+
+extension Start {
+	func start(times: Int) async -&gt; Int {
+		for i in 0...times {
+			print("actor \(Self.self): \(#function) \(i)")
+			await Task.yield()
+		}
+		
+		return times
+	}
+}
+
+actor One: Start {}
+actor Two: Start {}
+
+func yielding() async {
+	let one = One()
+	let two = Two()
+	
+	await withTaskGroup(of: Int.self) { group in
+		group.addTask {
+			await one.start(times: 100)
+		}
+		
+		group.addTask {
+			await two.start(times: 100)
+		}
+	}
+}
+
+await yielding()
+</code></pre>
+<p>Мы создаем протокол <code>Start</code>, в котором определен метод <code>start(times:)</code>, выполняющийся асинхронно в цикле.
+В реализации метода (через расширение протокола) каждую итерацию вызывается метод <code>Task.yield()</code>, что позволяет актору приостанавливать задачу и продолжать выполнение других задач.</p>
+<p>В главной функции <code>await yielding()</code> акторы <code>One</code> и <code>Two</code> запускаются параллельно в группе задач и каждая из них выполняет метод <code>start(times:)</code>, приостанавливаясь в каждой итерации.
+Такой подход полезен при выполнении ресурсоёмких операций, которые могут длиться долго.
+Вставка <code>Task.yield()</code> делает работу задач более сбалансированной, предотвращая блокировку других акторов и улучшая отзывчивость приложения.</p>
+<details>
+  <summary>Вывод</summary>
+<pre><code class="language-bash">actor One: start(times:) 0
+actor Two: start(times:) 0
+actor One: start(times:) 1
+actor Two: start(times:) 1
+actor Two: start(times:) 2
+actor One: start(times:) 2
+actor One: start(times:) 3
+actor Two: start(times:) 3
+actor One: start(times:) 4
+actor One: start(times:) 5
+actor One: start(times:) 6
+actor One: start(times:) 7
+actor One: start(times:) 8
+actor Two: start(times:) 4
+actor Two: start(times:) 5
+actor One: start(times:) 9
+actor Two: start(times:) 6
+actor Two: start(times:) 7
+actor One: start(times:) 10
+actor Two: start(times:) 8
+actor One: start(times:) 11
+actor One: start(times:) 12
+actor One: start(times:) 13
+actor Two: start(times:) 9
+actor Two: start(times:) 10
+actor One: start(times:) 14
+actor Two: start(times:) 11
+actor Two: start(times:) 12
+actor Two: start(times:) 13
+actor Two: start(times:) 14
+actor Two: start(times:) 15
+actor Two: start(times:) 16
+actor One: start(times:) 15
+actor One: start(times:) 16
+actor Two: start(times:) 17
+actor One: start(times:) 17
+actor One: start(times:) 18
+actor Two: start(times:) 18
+actor One: start(times:) 19
+actor Two: start(times:) 19
+actor One: start(times:) 20
+actor Two: start(times:) 20
+actor One: start(times:) 21
+actor Two: start(times:) 21
+actor Two: start(times:) 22
+actor One: start(times:) 22
+actor Two: start(times:) 23
+actor Two: start(times:) 24
+actor One: start(times:) 23
+actor One: start(times:) 24
+actor Two: start(times:) 25
+actor One: start(times:) 25
+actor One: start(times:) 26
+actor Two: start(times:) 26
+actor One: start(times:) 27
+actor One: start(times:) 28
+actor One: start(times:) 29
+actor One: start(times:) 30
+actor One: start(times:) 31
+actor One: start(times:) 32
+actor One: start(times:) 33
+actor Two: start(times:) 27
+actor One: start(times:) 34
+actor Two: start(times:) 28
+actor One: start(times:) 35
+actor Two: start(times:) 29
+actor One: start(times:) 36
+actor Two: start(times:) 30
+actor One: start(times:) 37
+actor Two: start(times:) 31
+actor Two: start(times:) 32
+actor Two: start(times:) 33
+actor Two: start(times:) 34
+actor One: start(times:) 38
+actor Two: start(times:) 35
+actor Two: start(times:) 36
+actor One: start(times:) 39
+actor Two: start(times:) 37
+actor One: start(times:) 40
+actor One: start(times:) 41
+actor One: start(times:) 42
+actor One: start(times:) 43
+actor Two: start(times:) 38
+actor One: start(times:) 44
+actor Two: start(times:) 39
+actor One: start(times:) 45
+actor Two: start(times:) 40
+actor One: start(times:) 46
+actor Two: start(times:) 41
+actor One: start(times:) 47
+actor Two: start(times:) 42
+actor Two: start(times:) 43
+actor One: start(times:) 48
+actor One: start(times:) 49
+actor Two: start(times:) 44
+actor One: start(times:) 50
+actor Two: start(times:) 45
+actor One: start(times:) 51
+actor One: start(times:) 52
+actor One: start(times:) 53
+actor One: start(times:) 54
+actor One: start(times:) 55
+actor One: start(times:) 56
+actor Two: start(times:) 46
+actor Two: start(times:) 47
+actor Two: start(times:) 48
+actor Two: start(times:) 49
+actor One: start(times:) 57
+actor Two: start(times:) 50
+actor One: start(times:) 58
+actor Two: start(times:) 51
+actor One: start(times:) 59
+actor Two: start(times:) 52
+actor One: start(times:) 60
+actor Two: start(times:) 53
+actor One: start(times:) 61
+actor Two: start(times:) 54
+actor One: start(times:) 62
+actor Two: start(times:) 55
+actor Two: start(times:) 56
+actor One: start(times:) 63
+actor Two: start(times:) 57
+actor One: start(times:) 64
+actor One: start(times:) 65
+actor Two: start(times:) 58
+actor One: start(times:) 66
+actor One: start(times:) 67
+actor One: start(times:) 68
+actor Two: start(times:) 59
+actor One: start(times:) 69
+actor One: start(times:) 70
+actor Two: start(times:) 60
+actor One: start(times:) 71
+actor One: start(times:) 72
+actor One: start(times:) 73
+actor One: start(times:) 74
+actor Two: start(times:) 61
+actor One: start(times:) 75
+actor Two: start(times:) 62
+actor One: start(times:) 76
+actor One: start(times:) 77
+actor Two: start(times:) 63
+actor One: start(times:) 78
+actor Two: start(times:) 64
+actor One: start(times:) 79
+actor Two: start(times:) 65
+actor One: start(times:) 80
+actor Two: start(times:) 66
+actor One: start(times:) 81
+actor Two: start(times:) 67
+actor One: start(times:) 82
+actor One: start(times:) 83
+actor Two: start(times:) 68
+actor Two: start(times:) 69
+actor One: start(times:) 84
+actor Two: start(times:) 70
+actor One: start(times:) 85
+actor One: start(times:) 86
+actor Two: start(times:) 71
+actor One: start(times:) 87
+actor One: start(times:) 88
+actor Two: start(times:) 72
+actor One: start(times:) 89
+actor Two: start(times:) 73
+actor One: start(times:) 90
+actor One: start(times:) 91
+actor Two: start(times:) 74
+actor One: start(times:) 92
+actor Two: start(times:) 75
+actor One: start(times:) 93
+actor Two: start(times:) 76
+actor One: start(times:) 94
+actor Two: start(times:) 77
+actor One: start(times:) 95
+actor Two: start(times:) 78
+actor One: start(times:) 96
+actor One: start(times:) 97
+actor One: start(times:) 98
+actor Two: start(times:) 79
+actor Two: start(times:) 80
+actor One: start(times:) 99
+actor Two: start(times:) 81
+actor Two: start(times:) 82
+actor Two: start(times:) 83
+actor One: start(times:) 100
+actor Two: start(times:) 84
+actor Two: start(times:) 85
+actor Two: start(times:) 86
+actor Two: start(times:) 87
+actor Two: start(times:) 88
+actor Two: start(times:) 89
+actor Two: start(times:) 90
+actor Two: start(times:) 91
+actor Two: start(times:) 92
+actor Two: start(times:) 93
+actor Two: start(times:) 94
+actor Two: start(times:) 95
+actor Two: start(times:) 96
+actor Two: start(times:) 97
+actor Two: start(times:) 98
+actor Two: start(times:) 99
+actor Two: start(times:) 100
+</code></pre>
+</details>
+<h4 id="isolated-deinit"><a class="header" href="#isolated-deinit">Isolated deinit</a></h4>
+<!-- https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md -->
+<pre><code class="language-swift">@globalActor
+final actor Moonland {
+	static let shared = Moonland()
+}
+
+@Moonland
+func hello() {}
+
+class MyClass {
+	@Moonland deinit {
+		hello()
+	}
+}
+
+MyClass()
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-alerts {
@@ -1236,7 +1943,7 @@ print("Data size: \(result.count)")
 </code></pre>
 <p>Под первым комментарием <code>// 1</code> мы создаем задачу с помощью <code>async let</code> синтаксиса. Важно понять, что в этом случае задача не приостанавливается, поскольку ключевое слово <code>await</code> отсутствует.
 Только во второй комментарии мы указываем ключевое слово <code>await</code>, с помощью которого задача приостанавливается и возвращает результат.</p>
-<p>Чуть ниже я указал пример с настоящими данными, попробуйте запустить его.</p>
+<p>Чуть ниже я указал пример с настоящими данными (10MB), попробуйте запустить его.</p>
 
                     </main>
 
