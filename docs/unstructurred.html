@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Практика - Structured Concurrency не магия</title>
+        <title>Unstructured concurrency - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html" class="active"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html" class="active"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,30 +240,112 @@
 }
 
 </style>
-<h1 id="Практика"><a class="header" href="#Практика">Практика</a></h1>
-<p>Данный раздел посвящен практическому использованию <strong>SC</strong>.
-По мере продвижения, главы будут усложняться.</p>
+<h1 id="unstructured-concurrency"><a class="header" href="#unstructured-concurrency">Unstructured Concurrency</a></h1>
+<p>Если <strong>SC</strong> - это явно упорядоченные отношения между родильской и дочерними задачами, то Unstructured Concurrency — полная противоположность.</p>
+<p>Unstructured concurrency (<strong>UC</strong>), напротив, предоставляет разработчику больше гибкости: задачи могут существовать независимо друг от друга, не имеют явной иерархии и не связаны напрямую с родительской задачей. В определенных ситуациях не обойтись без <strong>UC</strong> и такое поведение также означает, что разработчик сам отвечает за корректное управление задачами, отмену и обработку ошибок.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Основное отличие Unstructured от Structured — отсуствие родительской задачи!</p>
+</div>
+<h3 id="На-примере"><a class="header" href="#На-примере">На примере</a></h3>
+<p>В самом простом сценарии (когда мы не сможем управлять задачей), нужно использовать структуру <code>Task</code> или <code>Task.detached</code> передавая в замыкание код:</p>
+<pre><code class="language-swift">Task {…}
+
+Task.detached {…}
+</code></pre>
+<p>Более продвинутым вариантом послужит явно объявить тип данных (можно не указавать, компилятор определит тип данных сам) с последующим управлением:</p>
 <ol>
-<li>
-<p>В главе 5.1 мы рассмотрим написание собственного актора (хоть в книге мы не затрагиваем эту концепцию), загрузку изображения и декодирование объекта с помощью <code>async let</code> задач и группы задач <code>withTaskGroup</code>.</p>
-</li>
-<li>
-<p>В главе 5.2 материал о технологии <code>AsyncSequence</code>, который объясняет её концепцию, основные сценарии использования и дает практические примеры.</p>
-</li>
-<li>
-<p>В главе 5.3 показаны различные примеры кода.</p>
-</li>
+<li>Отменой задачи</li>
+<li>Получение значения</li>
+<li>Получением результата</li>
+<li>Индикация отмены <code>isCancelled</code></li>
 </ol>
+<pre><code class="language-swift">let handleNameViaTask = Task&lt;String, Never&gt; {
+    "Дорогой читатель"
+}
+
+// 1. Отмена задачи
+// handleNameViaTask.cancel()
+
+// 2. Получение значения
+// print(await handleNameViaTask.value)
+
+/*
+3. Обработка результата с помощью switch паттерна или guard case
+
+switch await handleNameViaTask.result {
+    case let .success(userName): print("User name: ", userName)
+    case let .failure(error): print(error.localizedDescription)
+}
+
+guard case let .success(userName) = await handleNameViaTask.result else { return }
+*/
+
+// 4. Индикация отмены
+// handleNameViaTask.isCancelled
+</code></pre>
+<p>Помимо этого, задача может быть объявлена в качестве опционального свойства:</p>
+<pre><code class="language-swift">struct Worker {
+	var task: Task&lt;Void, Never&gt;?
+}
+</code></pre>
+<h3 id="Время-жизни-задачи"><a class="header" href="#Время-жизни-задачи">Время жизни задачи</a></h3>
+<p>Когда задача в методе <code>execute</code> завершилась, замыкание оперативно освобождается. Удерживание задачи не приводит к постоянному циклу, потому что все ссылки, которые захвачены задачей, освобождаются после ее завершения. В результате задача редко нуждаются в захвате слабых ссылок.</p>
+<p>В коде ниже нет необходимости захватывать актор как слабую ссылку, т.к. по завершении задачи, ссылка на актор будет освобождена, разрывая reference cycle между <code>Task</code> и актором.</p>
+<pre><code class="language-swift">struct EmptyResult {}
+
+actor Worker {
+	var workerTask: Task&lt;Void, Never&gt;?
+	var result: EmptyResult?
+	
+	deinit {
+		assert(workerTask != nil)
+		print("Retain count = ", _getRetainCount(Worker.self))
+		print("Weak Retain count = ", _getWeakRetainCount(Worker.self))
+		print("deinit actor")
+	}
+	
+	func execute() {
+		workerTask = Task {
+			print("начало работы задачи")
+			try? await Task.sleep(for: .seconds(1))
+			
+			self.result = EmptyResult()
+			print("конец работы, выход из области видимости")
+		}
+	}
+}
+
+await Worker().execute()
+</code></pre>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Обратите внимание, что актор удерживается только за счет использования <code>self</code> методом <code>execute()</code> и  метод <code>execute()</code> выполняется сразу, не ожидая завершения неструктурированной задачи. Когда задача завершается и ее замыкание уничтожается, сильная ссылка на актор также освобождается, позволяя актору корректно деинициализироваться, как и полагается.</p>
+</div>
+<pre><code class="language-js">начало работы задачи
+конец работы, выход из области видимости
+
+Retain count =  1
+Weak Retain count =  1
+
+deinit actor
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="task_cancellation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="beginning.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="practice_cat.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="task_cancellation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -273,33 +355,17 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="task_cancellation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="beginning.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="practice_cat.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="task_cancellation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

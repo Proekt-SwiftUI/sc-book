@@ -4,6 +4,9 @@ language = "ru"
 multilingual = false
 src = "src"
 title = "Structured Concurrency не магия"
+
+[build]
+build-dir = "docs"
 create-missing = false
 
 [output.html.code.hidelines]

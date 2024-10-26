@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Практика async let &amp; withTaskGroup - Structured Concurrency не магия</title>
+        <title>Основы - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html" class="active"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html" class="active"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,222 +240,64 @@
 }
 
 </style>
-<h3 id="Практика-async-let-и-withtaskgroup"><a class="header" href="#Практика-async-let-и-withtaskgroup">Практика: async let и withTaskGroup</a></h3>
-<p>В этой главе мы <strong>наглядно</strong> разберемся с реальными примерами и поймем, когда использовать <code>async let</code>, а когда <code>withTaskGroup</code>.</p>
-<p>Пример приложения написан на современном стеке: <code>SwiftUI</code> и макросе <code>@Observable</code> для управления данными. Легенда: существует профиль кота и список имен других котов.
-Необходимо получить:</p>
+<h1 id="Зачем-нам-нужен-новый-подход-"><a class="header" href="#Зачем-нам-нужен-новый-подход-">Зачем нам нужен новый подход ?</a></h1>
+<p>Structured concurrency (далее <strong>SC</strong>) позволяет рассуждать о конкуретном вычислении используя специальные точки, позволяет узнать о разветвлениях, конкурентных вычислениях и увидеть результат вычислений, подобно тому, как работает блок условия <code>if else</code> в синхронном коде.</p>
+<p>Конкурентная задача начинается, когда вы используете <code>async let</code>, создаете открепленную (detached) задачу или группу задач.
+Задача возобновляются в точке приостановке (suspention point), обозначаемой <code>await</code>.
+Однако не все задачи являются структурированными.</p>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>Структурированные задачи создаются с помощью <code>async let</code> и групп задач, а не структурированные — используя <code>Task</code> и <code>Task.detached</code>.</p>
+</div>
+<p><img src="images/sc_vs_uc.png" alt="Structured VS Unstructured" /></p>
+<p>Структурированные задачи живут до конца области видимости, подобно локальным переменным и автоматически отменяются при выходе из области видимости. Такой подход даёт явно понять как долго задача должна жить.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Старайтесь, по возможности, использовать <strong>SC</strong>, вместо не структурированных задач (Unstructured).</p>
+</div>
+<p>О преимуществах <strong>SC</strong> вы можете прочитать ниже, а пока посмотрим на конкретный пример.</p>
+<p>Представьте, что в нашем распоряжении кухня с несколькими шеф поварами, каждый из которых хочет приготовить суп.
+Приготовление супа состоит из нескольких шагов: нарезка ингридиентов, мариновка курицы, варка бульона и финальное приготовление.
+Некоторые задачи можно выполнить параллельно, а другие только в определенном порядке.</p>
+<p><img src="images/prepare_soup.png" alt="Soup" /></p>
+<p>Посмотрим на нашу функцию приготовления <code>makeSoup</code>.</p>
+<p><img src="images/task_inside_func.png" alt="Make Soup UC" /></p>
+<p>Возможно вы захотите явно добавить неструктурированные задачи <code>Task { … }</code> к вашим функциям и будете ожидать возвращения значения.
+Это подразумевает, что задача будет выполняться конкуретно, но все же это не рекумондуемый способ использовать конкурентность в Swift.
+Посмотрите на эту же функцию, но с использованием <strong>SC</strong>.</p>
+<p><img src="images/soup_with_sc.png" alt="Make Soup SC" /></p>
+<p>Поскольку мы знаем количество дочерних задач, мы можем использовать удобный синтаксис <code>async let</code>.
+В этом случае, задачи формируют <strong>структурированные отношения с родительской задачей</strong>. Чуть позже вы узнаете почему это важно.</p>
+<p><code>makeSoup</code> вызывает несколько асинхронных функций, одна из которых нарезка ингридиентов <code>chopIngridients(…)</code>, которая принимает список ингридиентов и использует <code>taskGroup { … }</code> для конкрурентной нарезки.</p>
+<p><img src="images/chopIngridients.png" alt="Chop" /></p>
+<p>Вы ознакомились с задачей по приготовлению супа. Самое время посмотреть как выглядит дерево иерархии (Task tree) этой задачи.</p>
+<p><img src="images/task_tree.png" alt="Task tree" /></p>
+<p>Дочерние задачи нашей функции выделены цветными квадратами. Стрелки указывают на отношения между родительскими и дочерними задачами.
+Функция <code>makeSoup</code> содержит 3 дочерние задачи:</p>
 <ol>
-<li>Аватарку кота.</li>
-<li>Список имен других котов.</li>
+<li>Нарезка ингридиентов <code>chopIngridients(🍍, 🥕, 🧅)</code></li>
+<li>Мариновка курицы <code>marinate(🍗)</code></li>
+<li>Варка бульона <code>boil broth</code></li>
 </ol>
-<h4 id="actor-catdownloader"><a class="header" href="#actor-catdownloader">actor CatDownloader</a></h4>
-<p>Для загрузки данных я подготовил актор <code>CatDownloader</code>, который будет скачивать аватарку и список котов.</p>
-<pre><code class="language-swift">struct Cat: Decodable, Identifiable {
-	let id: Int
-	let name: String
-	let breed: String
-	let photoUrl: String
-}
-
-actor CatDownloader {
-	var decoder: JSONDecoder {
-		let decoder = JSONDecoder()
-		decoder.keyDecodingStrategy = .convertFromSnakeCase
-		return decoder
-	}
-	
-	// URL для аватарки
-	let avatarURL: URL = .init(string: "https://image.lexica.art/full_webp/4f696c7b-f280-43ce-80f0-dd211c7f553")!
-	let catAPI: URL = .init(string: "https://raw.githubusercontent.com/Proekt-SwiftUI/sc-book/refs/heads/main/practice_data/cat_api.json?token=GHSAT0AAAAAACY4C77IXVFZ522PDU33FK6AZYPWQEQ")!
-	
-	// Скачиваем аватарку кота. В случае неудачи возвращаем nil
-	func downloadCatAvatar() async throws -&gt; UIImage? {
-		let imageData: Data = try await URLSession.shared.data(for: .init(url: avatarURL)).0
-		
-		guard let catImage: UIImage = UIImage(data: imageData) else {
-			print("Картинка кота не найдена и/или не доступна")
-			return nil
-		}
-		
-		return catImage
-	}
-	
-	// Скачиваем список котов, декодируем в массив [Cat] и возвращаем результат
-	func getListOfCats() async throws -&gt; [Cat] {
-		let catsData: Data = try await URLSession.shared.data(for: .init(url: catAPI)).0
-		let cats: [Cat] = try decoder.decode([Cat].self, from: catsData)
-		return cats
-	}
-}
-</code></pre>
-<h4 id="class-catviewmodel"><a class="header" href="#class-catviewmodel">class CatViewModel</a></h4>
-<p>Для взаимодействия между актором и вьюхой, создадим <code>CatViewModel</code> с применением макроса <code>@Observable</code>:</p>
-<pre><code class="language-swift">@Observable
-final class CatViewModel {
-	let downloader = CatDownloader()
-	
-	var catImage: Image?
-	var listOfCats: [Cat] = []
-	
-	func downloadCatImage() async {
-		do {
-			guard let finalImage: UIImage = try await downloader.downloadCatAvatar() else {
-				return
-			}
-			
-			await MainActor.run {
-				catImage = Image(uiImage: finalImage)
-			}
-			
-			print("Аватар кота загрузился")
-		} catch {
-			print(error.localizedDescription)
-		}
-	}
-	
-	func getListOfCats() async {
-		do {
-			let decodedCats: [Cat] = try await downloader.getListOfCats()
-			
-			await MainActor.run {
-				listOfCats = decodedCats
-			}
-			print("Список котов загрузился")
-		} catch {
-			print(error.localizedDescription)
-		}
-	}
-}
-</code></pre>
-<h4 id="magicwithcat--swiftui"><a class="header" href="#magicwithcat--swiftui">MagicWithCat + SwiftUI</a></h4>
-<p>Теперь создадим графический интерфейс:</p>
-<pre><code class="language-swift">struct MagicWithCat: View {
-	@State
-	private var catData = CatViewModel()
-	
-	var body: some View {
-		VStack {
-			CatImageView(image: catData.catImage)
-				.ignoresSafeArea(.all, edges: .top)
-			
-			Spacer()
-			
-			List(catData.listOfCats) { cat in
-				Text(cat.name)
-			}
-		}
-		.animation(.smooth, value: catData.catImage)
-		.task {
-			await catData.downloadCatImage()
-			await catData.getListOfCats()
-		}
-	}
-}
-
-struct CatImageView: View {
-	let image: Image?
-	
-	var body: some View {
-		if let image {
-			image
-				.resizable()
-				.aspectRatio(contentMode: .fill)
-				.frame(height: 350)
-				.clipShape(.rect(cornerRadius: 16))
-		} else {
-			RoundedRectangle(cornerRadius: 16)
-				.foregroundStyle(.secondary)
-				.frame(height: 350)
-				.overlay {
-					HStack {
-						Text("Loading cat image")
-							.font(.title2.bold())
-							.foregroundStyle(.white)
-						
-						ProgressView()
-							.tint(.white)
-							.padding(7)
-							.background(.secondary.opacity(0.25), in: .circle)
-					}
-				}
-		}
-	}
-}
-</code></pre>
-<p>Основное внимание стоит уделить модификатору .task {…}, где происходит загрузка данных. Сначала загружается аватар кота, затем список имен. В консоли вы увидите:</p>
-<pre><code class="language-text">Аватар кота загрузился
-Список котов загрузился
-</code></pre>
-<p>Это происходит последовательно, так как сначала выполняется первая задача <code>downloadCatImage()</code>, а затем вторая <code>getListOfCats()</code>. Мы можем поменять их местами, чтобы сначала загружался список:</p>
-<pre><code class="language-swift">.task {
-    await catData.getListOfCats()
-    await catData.downloadCatImage()
-}
-</code></pre>
-<p><img src="images/practice_cat.png" alt="Cat Practice image" /></p>
-<p>Чтобы сделать вызовы параллельными, мы можем использовать <code>async let</code>. Тогда обе задачи будут выполняться одновременно:</p>
-<pre><code class="language-swift">.task {
-    async let avatar: Void = catData.downloadCatImage()
-    async let cats: Void = catData.getListOfCats()
-    
-    await avatar
-    await cats
-}
-
-// Список котов загрузился
-// Аватар кота загрузился
-</code></pre>
-<h4 id="Рефакторинг"><a class="header" href="#Рефакторинг">Рефакторинг</a></h4>
-<ol>
-<li>Пример с <code>async let</code></li>
-</ol>
-<p>Этот метод хорош для небольшого числа асинхронных задач, где порядок выполнения не имеет значения:</p>
-<pre><code class="language-swift">// Подходит для небольшого количества задач, порядок вызова await не важен
-func getDataViaAsyncLet() async {
-    async let image: Void = downloadCatImage()
-    async let cats: Void = getListOfCats()
-
-    await cats
-    await image
-}
-</code></pre>
-<p>Вызовем задачу:</p>
-<pre><code class="language-swift">.task {
-    await catData.getDataViaAsyncLet()
-}
-</code></pre>
-<ol start="2">
-<li>Пример с withTaskGroup</li>
-</ol>
-<p>Этот метод полезен, когда требуется большое количество асинхронных вызовов или работа с циклами:</p>
-<pre><code class="language-swift">// Подходит для большого количества задач или работы с циклами
-func downloadViaTaskGroup() async {
-    await withTaskGroup(of: Void.self) { group in
-        group.addTask { await self.downloadCatImage() }
-        group.addTask { await self.getListOfCats() }
-    }
-}
-</code></pre>
-<p>Вызовем задачу:</p>
-<pre><code class="language-swift">.task {
-    await catData.downloadViaTaskGroup()
-}
-</code></pre>
-<h4 id="Когда-использовать-async-let-и-когда-withtaskgroup"><a class="header" href="#Когда-использовать-async-let-и-когда-withtaskgroup">Когда использовать async let и когда withTaskGroup</a></h4>
-<ul>
-<li>async let — подходит для параллельного выполнения небольшого количества задач, когда порядок завершения не важен. Хорошо, если задачи не зависят друг от друга.</li>
-<li>withTaskGroup — используется для более сложных сценариев, когда нужно динамически создавать и управлять задачами, например, при большом количестве запросов или циклах с дочерними задачами.</li>
-</ul>
+<p>Функция <code>chopIngridients(…)</code> использует <code>taskGroup { … }</code> для создания дочерних задач для каждого ингридиента. Мы используем 3 ингридиента, поэтому будут созданы 3 дочерних задачи. Такие родитеские и дочерние отношения формируют дерево задач (task tree).</p>
+<!-- В качестве еще одного примера, рассмотрим загрузку картинок. -->
+<p>Про отмену задач сказано в <a href="./task_cancellation.html">другой главе</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="welcome_practice.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="async_sequence.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="unstructurred.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -465,33 +307,17 @@ func downloadViaTaskGroup() async {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="welcome_practice.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="async_sequence.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="unstructurred.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

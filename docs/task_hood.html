@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Практика AsyncSequence - Structured Concurrency не магия</title>
+        <title>Task под капотом - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html" class="active"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html" class="active"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,89 +240,120 @@
 }
 
 </style>
-<h3 id="Практика-asyncsequence"><a class="header" href="#Практика-asyncsequence">Практика: AsyncSequence</a></h3>
-<p>В этой главе мы разберем технологию <code>AsyncSequence</code> в Swift, которая позволяет работать с последовательностями данных асинхронно. AsyncSequence полезен, когда нам нужно получать данные постепенно или по частям, например, при чтении из потока данных или получении событий. Мы рассмотрим реальные примеры использования и узнаем, как управлять асинхронными последовательностями.</p>
-<h4 id="Что-такое-asyncsequence"><a class="header" href="#Что-такое-asyncsequence">Что такое AsyncSequence?</a></h4>
-<p><code>AsyncSequence</code> — это протокол, который предоставляет интерфейс для асинхронного итератора. Вместо того чтобы возвращать все элементы сразу, как обычные последовательности <code>Sequence</code>, <code>AsyncSequence</code> возвращает элементы по одному, позволяя обрабатывать их асинхронно.</p>
-<p>Это особенно полезно для работы с операциями, которые могут занять неопределенное время, например:</p>
-<ul>
-<li>Сетевые запросы с постепенным поступлением данных.</li>
-<li>Потоки данных, такие как события или сообщения.</li>
-<li>Чтение файлов или данных из внешних источников.</li>
-</ul>
-<h4 id="Основные-концепции"><a class="header" href="#Основные-концепции">Основные концепции</a></h4>
-<ul>
-<li><code>AsyncIterator</code> — объект, который итерирует через элементы асинхронной последовательности.</li>
-<li><code>for await</code> — специальная конструкция для итерации по элементам AsyncSequence.</li>
-</ul>
-<h4 id="network-status"><a class="header" href="#network-status">Network status</a></h4>
-<p>Давайте рассмотрим простой пример асинхронной последовательности, которая используется для отслеживания статуса сети в реальном времени.
-Этот подход позволяет нам удобно и эффективно обрабатывать изменения в статусе интернет-соединения.</p>
-<pre><code class="language-swift">extension NWPath.Status {
-	var isConnected: Bool {
-		self != .satisfied
-	}
-}
-
-struct NetworkStatus: AsyncSequence {
-	typealias Element = Bool
-
-	func makeAsyncIterator() -&gt; AsyncStream&lt;Element&gt;.Iterator {
-		let monitor = NWPathMonitor()
-		let monitorQueue = DispatchQueue(label: String(describing: Self.self) + "Queue")
-
-		return AsyncStream { continuation in
-			monitor.pathUpdateHandler = { path in
-				continuation.yield(path.status.isConnected)
-			}
-
-			monitor.start(queue: monitorQueue)
-
-			continuation.onTermination = { @Sendable _ in
-				monitor.cancel()
-			}
-		}
-		.makeAsyncIterator()
-	}
-}
-</code></pre>
+<h1 id="Заглядываем-внутрь-task"><a class="header" href="#Заглядываем-внутрь-task">Заглядываем внутрь Task</a></h1>
+<p>Для начала, каждая задача имеет четыре состояния. За состояние (статус) отвечает класс <code>TaskStatusRecord</code>:</p>
 <ol>
-<li>
-<p><code>NetworkStatus</code> реализует протокол AsyncSequence. Протокол <code>AsyncSequence</code> требует реализации типа алиаса <code>Element</code> (является типом данных <code>Bool</code>) и метод <code>makeAsyncIterator()</code>. Последний возвращает асинхронный итератор, который будет управлять последовательностью значений.</p>
-</li>
-<li>
-<p>В основе нашего подхода лежит <code>NWPathMonitor</code> из фреймворка <code>Network</code>, который предназначен для отслеживания статуса сети. Этот монитор позволяет следить за изменениями подключения, включая переключения между Wi-Fi, сотовой связью и отсутствием сети.</p>
-</li>
+<li>Suspended: приостановлена и не выполняется</li>
+<li>Enqueued: ожидает выполнения</li>
+<li>Running: выполняется</li>
+<li>Completed: выполнена</li>
 </ol>
-<ul>
-<li><code>monitor.pathUpdateHandler</code>: данный обработчик вызывается каждый раз, когда происходит изменение состояния сети. Мы используем его, чтобы передать новое значение состояния через <code>continuation.yield</code>.</li>
-<li><code>monitor.start(queue:)</code>: для запуска <code>NWPathMonitor</code> необходимо указать, в каком потоке (очереди) будет обрабатываться его работа. Здесь используется очередь <code>DispatchQueue</code>, специально созданная для мониторинга.</li>
-</ul>
+<p>За переключение состояний отвечают четыре метода. Возможны следующие переходы из одного состояния в другое:</p>
+<pre><code class="language-swift">// suspended -&gt; enqueued
+// suspended -&gt; running
+// enqueued -&gt; running
+// running -&gt; suspended
+// running -&gt; completed
+// running -&gt; enqueued
+</code></pre>
+<p>Схематично:</p>
+<pre class="mermaid">---
+title: Состояние задачи
+---
+flowchart LR
+    S((Suspended)) -- В ожидание --&gt; E((Enqueued))
+    S((Suspended)) -- Выполнение без ожидания --&gt; R((Running))
+    E -- Выполнение после ожидания --&gt; R
+    
+    Run((Running)) -- Задача приостанавливается --&gt; Sus((Suspended))
+    Run -- В ожидание --&gt; Enq((Enqueued))
+    Run -- Выполнение завершилось --&gt; C((Completed))
+</pre>
+<h2 id="Метаданные"><a class="header" href="#Метаданные">Метаданные</a></h2>
+<p>Как понять, в каком состоянии задача приостановила свою работу ? А в каком должна возобновить ?
+Для ответа на эти вопросы, существуют методы с помощью которых можно передать контекст для приостановления и возобновления задачи.</p>
+<ol>
+<li><code>AsyncContext</code>: данный контекст управляет состоянием задачи, которая ожидает завершения в дальнейшем. Когда задача приостанавливается, текущее состояние и контекст сохраняются, чтобы ее (задачу) можно было возобновить позже.</li>
+<li><code>Continuation</code> (TaskContinuationFunction): с помощью <code>continuation</code> возобновляется выполнение задачи.</li>
+</ol>
+<pre><code class="language-cpp">// Функция для возобновления выполнения AsyncTask.
+TaskContinuationFunction * __ptrauth_swift_task_resume_function ResumeTask;
+</code></pre>
 <ol start="3">
-<li>Асинхронные последовательности (sequence), такие как <code>AsyncStream</code>, обеспечивают удобный способ создания и управления последовательными данными, которые асинхронно поступают во времени. В нашем коде <code>AsyncStream</code> создаёт поток значений на основе изменений статуса сети. Этот поток затем возвращает итератор, который мы передаём дальше.</li>
+<li>Класс <code>TaskOptionRecord</code> отвечает за запись параметров созданной задачи, включая приоритет и другие детали, помогающие исполнителю эффективно и корректно управлять задачами.
+В обычном Swift хранится указатель метаданных и диспетчирезация происходит в witness table.
+Во встроенном (embedded) Swift у нас отсутствует witness table в рантайме, поэтому диспетчеризация вызывается напрямую (direct).</li>
 </ol>
-<ul>
-<li><code>continuation.yield</code>: передаёт данные (в данном случае — состояние сети) асинхронно в поток, когда изменяется статус сети.</li>
-<li><code>continuation.onTermination</code>: обрабатывает завершение потока. Когда поток завершён, монитор сети <code>NWPathMonitor</code> останавливается с помощью метода <code>cancel()</code>.</li>
-</ul>
-<h4 id="Использование"><a class="header" href="#Использование">Использование</a></h4>
-<p>Используя асинхронный цикл <code>for await</code>, мы можем последовательно получать значения состояния сети. Этот цикл будет постоянно ждать изменения состояния и реагировать на него.</p>
-<pre><code class="language-swift">var isNetworkAvailable: Bool = false
+<!-- /// Describes type information and offers value methods for an arbitrary concrete
+/// type in a way that's compatible with regular Swift and embedded Swift. In
+/// regular Swift, just holds a Metadata pointer and dispatches to the value
+/// witness table. In embedded Swift, because we do not have any value witness
+/// tables present at runtime, the witnesses are stored and referenced directly.
+///
+/// This structure is created from swift_task_create, where in regular Swift, the
+/// compiler provides the Metadata pointer, and in embedded Swift, a
+/// TaskOptionRecord is used to provide the witnesses. -->
+<h2 id="Планирование-приостановка-и-возобновление-задачи"><a class="header" href="#Планирование-приостановка-и-возобновление-задачи">Планирование, приостановка и возобновление задачи</a></h2>
+<p>Исполнитель (executor) отвечает за планирование и запуск задач.</p>
+<!-- Executors: An executor is responsible for scheduling and running tasks. ExecutorRef manages references to executors, ensuring that tasks are resumed on the correct executor, which can be a global concurrent queue or a custom executor.
+Job Interface: The Job interface represents a unit of work that an executor can run. Both tasks and continuations are implemented as jobs, allowing them to be scheduled and executed efficiently. -->
+<h4 id="Приостановка-задачи"><a class="header" href="#Приостановка-задачи">Приостановка задачи:</a></h4>
+<p>При использовании ключевого слова <code>await</code>, выполняемая задача приостанавливается.
+Текущее состояние, включая приоритет, контекст и локальные переменные сохраняются.
+В рантайме создается <code>ContinuationAsyncContext</code> для управления состоянием задачи, гарантируя возобновление задачи позже.</p>
+<p>Хранение состояния для возобновления:</p>
+<p><code>Continuation</code> хранит данные таким образом, чтобы исполнитель или рантайм имели доступ к задаче во время приостановки. Обычно эти данные используются при добавлении задачи в очередь и последующего возобновления.</p>
+<h4 id="Возобновление-задачи"><a class="header" href="#Возобновление-задачи">Возобновление задачи:</a></h4>
+<p>После завершения приостановки <code>await</code>, задача попадает в очередь соответствующего исполнителя, который планирует возобновление задачи.
+Runtime восстанавливает состояние задачи, позволяя возобновить выполнение <code>async</code> функции с того места, где она (функция) была приостановлена.</p>
+<p>У каждой возобновляемой задачи имеется <code>ContinuationStatus</code>:</p>
+<pre><code class="language-cpp"><span class="boring">https://github.com/apple/swift/blob/main/include/swift/ABI/Task.h
+</span><span class="boring">
+</span>/// Status values for a continuation.  Note that the "not yet"s in
+/// the description below aren't quite right because the system
+/// does not actually promise to update the status before scheduling
+/// the task.  This is because the continuation context is immediately
+/// invalidated once the task starts running again, so the window in
+/// which we can usefully protect against (say) double-resumption may
+/// be very small.
+enum class ContinuationStatus : size_t {
+  /// The continuation has not yet been awaited or resumed.
+  Pending = 0,
 
-for await networkAlive in NetworkStatus() {
-    isNetworkAvailable = networkAlive
+  /// The continuation has already been awaited, but not yet resumed.
+  Awaited = 1,
+
+  /// The continuation has already been resumed, but not yet awaited.
+  Resumed = 2
+};
+</code></pre>
+<h4 id="На-конкретном-примере"><a class="header" href="#На-конкретном-примере">На конкретном примере</a></h4>
+<p>Посмотрите на код ниже:</p>
+<pre><code class="language-swift">func fetchData() async throws -&gt; Data {
+    let url = URL(string: "https://image.lexica.art/full_webp/298d5d92-5735-4474-ba0c-6d6b418df251")!
+    let data = try await URLSession.shared.data(from: url).0
+    return data
+}
+
+Task {
+    let data = try await fetchData()
+    print("Image size: \(data.count / 1024) kB")
 }
 </code></pre>
+<p>В нашем случаем <code>fetchData</code> — это асинхронная функция, которая приостанавливается при ожидании сетевого запроса.
+Ключевое слово <code>await</code> приостанавливает задачу, сохраняя её состояние (приоритет и т.д.) для дальнейшего продолжения (continuation).
+Как только сетевой запрос успешно завершится, вернув данные, задача попадает в очередь своего исполнителя, для возобновления.</p>
+<p>В случае успеха (если URL адрес существует), мы увидим вывод: <code>Image size: 136 kB</code></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="practice_cat.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="dive_deeper.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="task_tips.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="async_let_under_the_hood.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -332,33 +363,17 @@ for await networkAlive in NetworkStatus() {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="practice_cat.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="dive_deeper.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="task_tips.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="async_let_under_the_hood.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

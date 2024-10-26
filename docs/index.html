@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Отмена задач - Structured Concurrency не магия</title>
+        <title>Введение - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html" class="active"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html" class="active"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,93 +240,48 @@
 }
 
 </style>
-<h1 id="task-cancellation-отмена-задачи"><a class="header" href="#task-cancellation-отмена-задачи">Task cancellation (отмена задачи)</a></h1>
-<p>Отмена задачи необходима для индикации о том, что приложению больше не нужен результат задачи.
-В случае отмены, задача должна остановиться, вернув частичный результат или выдать ошибку.
-Выполнение задачи можно представить как последовательность периодов, в течение которых она выполнялась. Каждый такой период заканчивается в точке приостановки <code>await</code> или завершает задачу. Такие периоды выполнения представлены экземплярами <a href="https://developer.apple.com/documentation/swift/partialasynctask">PartialAsyncTask</a>:</p>
-<pre><code class="language-swift">typealias PartialAsyncTask = UnownedJob
-<span class="boring">
-</span><span class="boring">https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/PartialAsyncTask.swift#L16
-</span></code></pre>
-<blockquote>
-<p>Для взаимодействия с частичным результатом необходимо реализовать кастомный исполнитель (executor).</p>
-</blockquote>
-<!-- Показать пример реализации кастомного executora -->
-<p>В примере с супом, мы может остановить приготовление, если клиент ушел, решил заказать пюрешку с котлеткой или пришло время закрыть кухню.
-Что может привести к отмене задачи ? В случае <strong>SC</strong> (структурированных задач), задачи отменяются неявно при выходе из области видимости, хотя мы можем вручную вызвать метод <a href="https://developer.apple.com/documentation/swift/taskgroup/cancelall()">cancelAll()</a> для группы задач <a href="https://developer.apple.com/documentation/swift/taskgroup">TaskGroup</a>, чтобы отменить текущие и будущие дочерние задачи.</p>
-<p><img src="images/task_cancel.png" alt="Cancel Group" /></p>
-<p>В случае с неструктурированными задачи, отмена происходит явно с помощью метода <a href="https://developer.apple.com/documentation/swift/task/cancel()">cancel()</a>.</p>
-<p><img src="images/task_cancel_uc.png" alt="Cancel UC" /></p>
-<p>В результате, отмена родительской задачи приводит к отмене всех дочерних задач.</p>
-<div class="mdbook-alerts mdbook-alerts-note">
+<h1 id="О-чем-эта-книга-"><a class="header" href="#О-чем-эта-книга-">О чем эта книга ?</a></h1>
+<p>В данной книге я попытался рассказать о фундаментальных основах SC на языке Swift, принципах и разнице между Unstrured Concurrency, ручной и автоматической отмене задач, приоритете задачи и отладки.</p>
+<div class="mdbook-alerts mdbook-alerts-tip">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
-  note
+  tip
 </p>
-<p>Отмена задач является кооперативной, поэтому дочерние задачи не останавливаются немедленно/мгновенно.</p>
+<p>Реквизиты для поддержки автора ниже.</p>
 </div>
-<p>У каждой задачи существует состояние отмены: <strong>отменена</strong> или <strong>не отменена</strong>, под капотом это <strong>Bool</strong> тип данных.
-За это состояние отвечает свойство <strong>isCancelled</strong>. Обратите внимание, что не существует способа «отменить отмену».</p>
-<p><img src="images/task_is_cancelled.png" alt="Is cancelled Task" /></p>
-<p>Отмена задачи является гонкой.
-Если задача была отменена до нашей проверки в блоке <code>guard</code>, то метод вёрнет ошибку <code>SoupCancellationError</code>.</p>
-<p><img src="images/task_guard_error.png" alt="Task guard" /></p>
-<p>Если задача была отменена после блока <code>guard</code>, выполнение функции продолжиться и начнется подготовление к приготовлению супа.</p>
-<h2 id=""><a class="header" href="#"><img src="images/task_guard_continue.png" alt="Task guard after" /></a></h2>
-<p>Для того, чтобы вернуть ошибку отмены вместо возвращения частичного результата, мы можем вызвать метод <a href="https://developer.apple.com/documentation/swift/task/checkcancellation()">Task.checkCancellation()</a>, который вернёт <code>CancellationError</code> если задача была отменена:</p>
-<pre><code class="language-swift">@_unavailableInEmbedded
-public static func checkCancellation() throws {
-if Task&lt;Never, Never&gt;.isCancelled {
-    throw _Concurrency.CancellationError()
-    }
-}
-
-@available(SwiftStdlib 5.1, *)
-public struct CancellationError: Error {
-  // никаких дополнительный свойст, отмена должна быть легковесной
-  public init() {}
-}
+<h3 id="В-рублях-РФ"><a class="header" href="#В-рублях-РФ">В рублях РФ</a></h3>
+<p>QR-код для пополнения Тинькофф</p>
+<p><img src="images/payment_qr.png" alt="QR-код для пополнения Тинькофф" /></p>
+<h3 id="В-долларах"><a class="header" href="#В-долларах">В долларах</a></h3>
+<p>Freedom Bank KZ (MasterCard):</p>
+<pre><code class="language-js">5269 8800 0778 4309
 </code></pre>
-<p><img src="images/checkCancellation.png" alt="Check cancellation" /></p>
-<div class="mdbook-alerts mdbook-alerts-important">
-<p class="mdbook-alerts-title">
-  <span class="mdbook-alerts-icon"></span>
-  important
-</p>
-<p>Очень важно проверить отмену задачи перед выполнением затратной работы.</p>
-</div>
-<p>Проверка на отмену является синхронным методом, поэтому любая функция, асинхронная или синхронная, реагирующая на отмену, должна проверить статус перед продолжением работы.
-Отмена задачи с помощью <code>isCancelled</code> или <code>checkCancellation</code> полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации <code>AsyncSequence</code>. В таком случае будет полезным использовать <code>withTaskCancellationHandler</code>.</p>
-<pre><code class="language-swift">@_unsafeInheritExecutor // the operation runs on the same executor as we start out with
-@available(SwiftStdlib 5.1, *)
-@backDeployed(before: SwiftStdlib 5.8)
-public func withTaskCancellationHandler&lt;T&gt;(
-  operation: () async throws -&gt; T,
-  onCancel handler: @Sendable () -&gt; Void
-) async rethrows -&gt; T {
-  // unconditionally add the cancellation record to the task.
-  // if the task was already cancelled, it will be executed right away.
-  let record = _taskAddCancellationHandler(handler: handler)
-  defer { _taskRemoveCancellationHandler(record: record) }
-
-  return try await operation()
-}
+<h3 id="В-криптовалюте"><a class="header" href="#В-криптовалюте">В криптовалюте</a></h3>
+<p>USDT (Tether USDT) — BSC (BEP20):</p>
+<pre><code class="language-bash">0x273fe5c8f1d9886629967ba11ca88e7b6276fe8d
 </code></pre>
-<p>Для большего понимания, ниже на схеме изображены 2 сценария, при котором использовать тот или иной способ отмены.</p>
-<p><img src="images/when_cancel.png" alt="When cancel" /></p>
-<!-- Remember, cancellation does not stop a task from running, it only signals to the task that it has been cancelled and should stop running as soon a possible.
-
-Cancellation is a purely Boolean state; there’s no way to include additional information like the reason for cancellation. This reflects the fact that a task can be canceled for many reasons, and additional reasons can accrue during the cancellation process. -->
-
+<p>USDC (Solana):</p>
+<pre><code class="language-bash">J4fzaM7XWigRbRpw88Z3fj9vSZBxpaay9xMxbtS3ZDHH
+</code></pre>
+<p>Ethereum (Main network):</p>
+<pre><code class="language-bash">0x4E765A8c5C71b04b20d7fF3Ad005901CE6A99D11
+</code></pre>
+<p>TON coin:</p>
+<pre><code class="language-bash">UQARZfodIoN5WHeGSmfiIFrgBsnMMKHI2hDJeT0yjA-LykFw
+</code></pre>
+<h3 id="Связь-со-мной"><a class="header" href="#Связь-со-мной">Связь со мной</a></h3>
+<ol>
+<li><a href="https://github.com/wmorgue">GitHub</a></li>
+<li><a href="https://t.me/maybequantum">Telegram</a></li>
+<li><a href="https://linkedin.com/in/nick-rossik">LinkedIn</a></li>
+</ol>
+<!-- https://www.tinkoff.ru/rm/rossik.nikita1/oIfQz50874 -->
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="unstructurred.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
-                            </a>
 
-                            <a rel="next prefetch" href="welcome_practice.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="beginning.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -336,33 +291,14 @@ Cancellation is a purely Boolean state; there’s no way to include additional i
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="unstructurred.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
 
-                    <a rel="next prefetch" href="welcome_practice.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="beginning.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

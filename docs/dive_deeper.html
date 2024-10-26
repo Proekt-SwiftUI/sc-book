@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Async let под капотом - Structured Concurrency не магия</title>
+        <title>Погружаемся глубже - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html" class="active"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html" class="active"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,70 +240,20 @@
 }
 
 </style>
-<h1 id="Заглядываем-внутрь-async-let"><a class="header" href="#Заглядываем-внутрь-async-let">Заглядываем внутрь async let</a></h1>
-<!-- 
-1. Как создается задача с помощью async let. Это тянет на отдельную статью.
-2. Жизненный цикл async let
-3. Как компилятор понимает, что задача созданная с помощью async let, будет структурированной или не структурированной ?
- -->
-<p>Каждая задача, созднанная с помощью <code>async let</code> является структурированной.</p>
-<h3 id="Жизненный-цикл-async-let"><a class="header" href="#Жизненный-цикл-async-let">Жизненный цикл async let</a></h3>
-<ol>
-<li>Перед созданием задачи, компилятор выделяет большое фиксированное кол-во памяти. Вместе с этим устанавливаются внутренние флаги, записи о дочерних задачах и контекст.</li>
-<li>Инициализация задачи и её прикрепление к родительской задачи.</li>
-<li>Приостановка и возобновление. Сама по себе <code>async let</code> не является точкой приостановки, но при обращение к <code>async let</code> задаче с помощью ключевого слова <code>await</code>, текущая задача приостанавливает свое выполнение и сохраняет состояние.</li>
-<li>Обработка ошибок. Задача может вернуть ошибку вместо результата.</li>
-<li>Отмена задачи при выходе из области видимости.</li>
-</ol>
-<!-- https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/AsyncLet.cpp#L332C1-L333C27 -->
-<ol start="6">
-<li>Удаление записей о дочерних задачах.</li>
-<li>Освобождение памяти для дочерних задач и самой <code>async let</code> задачи.</li>
-</ol>
-<p>При создании задачи с помощью <code>async let</code> <a href="https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/Task.cpp#L586C1-L596C2">компилятор определяет</a> является ли она структурированной или не структурированной с помощью вспомогательных методов:</p>
-<pre><code class="language-cpp">static inline bool taskIsStructured(JobFlags jobFlags) {
-  return jobFlags.task_isAsyncLetTask() || jobFlags.task_isGroupChildTask();
-}
-
-static inline bool taskIsUnstructured(TaskCreateFlags createFlags, JobFlags jobFlags) {
-  return !taskIsStructured(jobFlags) &amp;&amp; !createFlags.isInlineTask();
-}
-
-static inline bool taskIsDetached(TaskCreateFlags createFlags, JobFlags jobFlags) {
-  return taskIsUnstructured(createFlags, jobFlags) &amp;&amp; !createFlags.copyTaskLocals();
-}
-</code></pre>
-<h3 id="На-примере"><a class="header" href="#На-примере">На примере</a></h3>
-<p>Посмотрим на самом маленьком примере:</p>
-<pre><code class="language-swift">func makeNames() async -&gt; [String] {
-	["Siri", "ChatGPT", "Vertex"]
-}
-
-async let names: [String] = makeNames() // 1
-await names // 2
-
-
-// Пример с настоящими данными
-async let data: Data = URLSession.shared.data(from: .init(string: "https://speedtest.selectel.ru/10MB")!).0
-let result = try await data
-
-print("Data size: \(result.count)")
-
-// или более короткой синтаксис
-// print("Data size: \(try await data)")
-</code></pre>
-<p>Под первым комментарием <code>// 1</code> мы создаем задачу с помощью <code>async let</code> синтаксиса. Важно понять, что в этом случае задача не приостанавливается, поскольку ключевое слово <code>await</code> отсутствует.
-Только во второй комментарии мы указываем ключевое слово <code>await</code>, с помощью которого задача приостанавливается и возвращает результат.</p>
-<p>Чуть ниже я указал пример с настоящими данными (10MB), попробуйте запустить его.</p>
+<h1 id="Погружаемся-глубже"><a class="header" href="#Погружаемся-глубже">Погружаемся глубже</a></h1>
+<p>В этом разделе мы заглянем в исходный код компилятора <code>stdlib/public/Concurrency</code>, а именно рассмотрим как устроена задача под капотом, посмотрим на <code>async let</code>, а так же узнаем, как компилятор понимает какая именно из задач является структурированной, а какая не структурированной.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="task_hood.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="task_tips.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="task_hood.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -311,30 +261,17 @@ print("Data size: \(result.count)")
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="task_hood.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="task_tips.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="task_hood.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

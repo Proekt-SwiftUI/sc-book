@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Task под капотом - Structured Concurrency не магия</title>
+        <title>Отмена задач - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html" class="active"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html" class="active"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,120 +240,93 @@
 }
 
 </style>
-<h1 id="Заглядываем-внутрь-task"><a class="header" href="#Заглядываем-внутрь-task">Заглядываем внутрь Task</a></h1>
-<p>Для начала, каждая задача имеет четыре состояния. За состояние (статус) отвечает класс <code>TaskStatusRecord</code>:</p>
-<ol>
-<li>Suspended: приостановлена и не выполняется</li>
-<li>Enqueued: ожидает выполнения</li>
-<li>Running: выполняется</li>
-<li>Completed: выполнена</li>
-</ol>
-<p>За переключение состояний отвечают четыре метода. Возможны следующие переходы из одного состояния в другое:</p>
-<pre><code class="language-swift">// suspended -&gt; enqueued
-// suspended -&gt; running
-// enqueued -&gt; running
-// running -&gt; suspended
-// running -&gt; completed
-// running -&gt; enqueued
-</code></pre>
-<p>Схематично:</p>
-<pre class="mermaid">---
-title: Состояние задачи
----
-flowchart LR
-    S((Suspended)) -- В ожидание --&gt; E((Enqueued))
-    S((Suspended)) -- Выполнение без ожидания --&gt; R((Running))
-    E -- Выполнение после ожидания --&gt; R
-    
-    Run((Running)) -- Задача приостанавливается --&gt; Sus((Suspended))
-    Run -- В ожидание --&gt; Enq((Enqueued))
-    Run -- Выполнение завершилось --&gt; C((Completed))
-</pre>
-<h2 id="Метаданные"><a class="header" href="#Метаданные">Метаданные</a></h2>
-<p>Как понять, в каком состоянии задача приостановила свою работу ? А в каком должна возобновить ?
-Для ответа на эти вопросы, существуют методы с помощью которых можно передать контекст для приостановления и возобновления задачи.</p>
-<ol>
-<li><code>AsyncContext</code>: данный контекст управляет состоянием задачи, которая ожидает завершения в дальнейшем. Когда задача приостанавливается, текущее состояние и контекст сохраняются, чтобы ее (задачу) можно было возобновить позже.</li>
-<li><code>Continuation</code> (TaskContinuationFunction): с помощью <code>continuation</code> возобновляется выполнение задачи.</li>
-</ol>
-<pre><code class="language-cpp">// Функция для возобновления выполнения AsyncTask.
-TaskContinuationFunction * __ptrauth_swift_task_resume_function ResumeTask;
-</code></pre>
-<ol start="3">
-<li>Класс <code>TaskOptionRecord</code> отвечает за запись параметров созданной задачи, включая приоритет и другие детали, помогающие исполнителю эффективно и корректно управлять задачами.
-В обычном Swift хранится указатель метаданных и диспетчирезация происходит в witness table.
-Во встроенном (embedded) Swift у нас отсутствует witness table в рантайме, поэтому диспетчеризация вызывается напрямую (direct).</li>
-</ol>
-<!-- /// Describes type information and offers value methods for an arbitrary concrete
-/// type in a way that's compatible with regular Swift and embedded Swift. In
-/// regular Swift, just holds a Metadata pointer and dispatches to the value
-/// witness table. In embedded Swift, because we do not have any value witness
-/// tables present at runtime, the witnesses are stored and referenced directly.
-///
-/// This structure is created from swift_task_create, where in regular Swift, the
-/// compiler provides the Metadata pointer, and in embedded Swift, a
-/// TaskOptionRecord is used to provide the witnesses. -->
-<h2 id="Планирование-приостановка-и-возобновление-задачи"><a class="header" href="#Планирование-приостановка-и-возобновление-задачи">Планирование, приостановка и возобновление задачи</a></h2>
-<p>Исполнитель (executor) отвечает за планирование и запуск задач.</p>
-<!-- Executors: An executor is responsible for scheduling and running tasks. ExecutorRef manages references to executors, ensuring that tasks are resumed on the correct executor, which can be a global concurrent queue or a custom executor.
-Job Interface: The Job interface represents a unit of work that an executor can run. Both tasks and continuations are implemented as jobs, allowing them to be scheduled and executed efficiently. -->
-<h4 id="Приостановка-задачи"><a class="header" href="#Приостановка-задачи">Приостановка задачи:</a></h4>
-<p>При использовании ключевого слова <code>await</code>, выполняемая задача приостанавливается.
-Текущее состояние, включая приоритет, контекст и локальные переменные сохраняются.
-В рантайме создается <code>ContinuationAsyncContext</code> для управления состоянием задачи, гарантируя возобновление задачи позже.</p>
-<p>Хранение состояния для возобновления:</p>
-<p><code>Continuation</code> хранит данные таким образом, чтобы исполнитель или рантайм имели доступ к задаче во время приостановки. Обычно эти данные используются при добавлении задачи в очередь и последующего возобновления.</p>
-<h4 id="Возобновление-задачи"><a class="header" href="#Возобновление-задачи">Возобновление задачи:</a></h4>
-<p>После завершения приостановки <code>await</code>, задача попадает в очередь соответствующего исполнителя, который планирует возобновление задачи.
-Runtime восстанавливает состояние задачи, позволяя возобновить выполнение <code>async</code> функции с того места, где она (функция) была приостановлена.</p>
-<p>У каждой возобновляемой задачи имеется <code>ContinuationStatus</code>:</p>
-<pre><code class="language-cpp"><span class="boring">https://github.com/apple/swift/blob/main/include/swift/ABI/Task.h
-</span><span class="boring">
-</span>/// Status values for a continuation.  Note that the "not yet"s in
-/// the description below aren't quite right because the system
-/// does not actually promise to update the status before scheduling
-/// the task.  This is because the continuation context is immediately
-/// invalidated once the task starts running again, so the window in
-/// which we can usefully protect against (say) double-resumption may
-/// be very small.
-enum class ContinuationStatus : size_t {
-  /// The continuation has not yet been awaited or resumed.
-  Pending = 0,
-
-  /// The continuation has already been awaited, but not yet resumed.
-  Awaited = 1,
-
-  /// The continuation has already been resumed, but not yet awaited.
-  Resumed = 2
-};
-</code></pre>
-<h4 id="На-конкретном-примере"><a class="header" href="#На-конкретном-примере">На конкретном примере</a></h4>
-<p>Посмотрите на код ниже:</p>
-<pre><code class="language-swift">func fetchData() async throws -&gt; Data {
-    let url = URL(string: "https://image.lexica.art/full_webp/298d5d92-5735-4474-ba0c-6d6b418df251")!
-    let data = try await URLSession.shared.data(from: url).0
-    return data
+<h1 id="task-cancellation-отмена-задачи"><a class="header" href="#task-cancellation-отмена-задачи">Task cancellation (отмена задачи)</a></h1>
+<p>Отмена задачи необходима для индикации о том, что приложению больше не нужен результат задачи.
+В случае отмены, задача должна остановиться, вернув частичный результат или выдать ошибку.
+Выполнение задачи можно представить как последовательность периодов, в течение которых она выполнялась. Каждый такой период заканчивается в точке приостановки <code>await</code> или завершает задачу. Такие периоды выполнения представлены экземплярами <a href="https://developer.apple.com/documentation/swift/partialasynctask">PartialAsyncTask</a>:</p>
+<pre><code class="language-swift">typealias PartialAsyncTask = UnownedJob
+<span class="boring">
+</span><span class="boring">https://github.com/apple/swift/blob/8f5980666de3b5c8a7fc6c1ec2891f7f8f91d03b/stdlib/public/Concurrency/PartialAsyncTask.swift#L16
+</span></code></pre>
+<blockquote>
+<p>Для взаимодействия с частичным результатом необходимо реализовать кастомный исполнитель (executor).</p>
+</blockquote>
+<!-- Показать пример реализации кастомного executora -->
+<p>В примере с супом, мы может остановить приготовление, если клиент ушел, решил заказать пюрешку с котлеткой или пришло время закрыть кухню.
+Что может привести к отмене задачи ? В случае <strong>SC</strong> (структурированных задач), задачи отменяются неявно при выходе из области видимости, хотя мы можем вручную вызвать метод <a href="https://developer.apple.com/documentation/swift/taskgroup/cancelall()">cancelAll()</a> для группы задач <a href="https://developer.apple.com/documentation/swift/taskgroup">TaskGroup</a>, чтобы отменить текущие и будущие дочерние задачи.</p>
+<p><img src="images/task_cancel.png" alt="Cancel Group" /></p>
+<p>В случае с неструктурированными задачи, отмена происходит явно с помощью метода <a href="https://developer.apple.com/documentation/swift/task/cancel()">cancel()</a>.</p>
+<p><img src="images/task_cancel_uc.png" alt="Cancel UC" /></p>
+<p>В результате, отмена родительской задачи приводит к отмене всех дочерних задач.</p>
+<div class="mdbook-alerts mdbook-alerts-note">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  note
+</p>
+<p>Отмена задач является кооперативной, поэтому дочерние задачи не останавливаются немедленно/мгновенно.</p>
+</div>
+<p>У каждой задачи существует состояние отмены: <strong>отменена</strong> или <strong>не отменена</strong>, под капотом это <strong>Bool</strong> тип данных.
+За это состояние отвечает свойство <strong>isCancelled</strong>. Обратите внимание, что не существует способа «отменить отмену».</p>
+<p><img src="images/task_is_cancelled.png" alt="Is cancelled Task" /></p>
+<p>Отмена задачи является гонкой.
+Если задача была отменена до нашей проверки в блоке <code>guard</code>, то метод вёрнет ошибку <code>SoupCancellationError</code>.</p>
+<p><img src="images/task_guard_error.png" alt="Task guard" /></p>
+<p>Если задача была отменена после блока <code>guard</code>, выполнение функции продолжиться и начнется подготовление к приготовлению супа.</p>
+<h2 id=""><a class="header" href="#"><img src="images/task_guard_continue.png" alt="Task guard after" /></a></h2>
+<p>Для того, чтобы вернуть ошибку отмены вместо возвращения частичного результата, мы можем вызвать метод <a href="https://developer.apple.com/documentation/swift/task/checkcancellation()">Task.checkCancellation()</a>, который вернёт <code>CancellationError</code> если задача была отменена:</p>
+<pre><code class="language-swift">@_unavailableInEmbedded
+public static func checkCancellation() throws {
+if Task&lt;Never, Never&gt;.isCancelled {
+    throw _Concurrency.CancellationError()
+    }
 }
 
-Task {
-    let data = try await fetchData()
-    print("Image size: \(data.count / 1024) kB")
+@available(SwiftStdlib 5.1, *)
+public struct CancellationError: Error {
+  // никаких дополнительный свойст, отмена должна быть легковесной
+  public init() {}
 }
 </code></pre>
-<p>В нашем случаем <code>fetchData</code> — это асинхронная функция, которая приостанавливается при ожидании сетевого запроса.
-Ключевое слово <code>await</code> приостанавливает задачу, сохраняя её состояние (приоритет и т.д.) для дальнейшего продолжения (continuation).
-Как только сетевой запрос успешно завершится, вернув данные, задача попадает в очередь своего исполнителя, для возобновления.</p>
-<p>В случае успеха (если URL адрес существует), мы увидим вывод: <code>Image size: 136 kB</code></p>
+<p><img src="images/checkCancellation.png" alt="Check cancellation" /></p>
+<div class="mdbook-alerts mdbook-alerts-important">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  important
+</p>
+<p>Очень важно проверить отмену задачи перед выполнением затратной работы.</p>
+</div>
+<p>Проверка на отмену является синхронным методом, поэтому любая функция, асинхронная или синхронная, реагирующая на отмену, должна проверить статус перед продолжением работы.
+Отмена задачи с помощью <code>isCancelled</code> или <code>checkCancellation</code> полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации <code>AsyncSequence</code>. В таком случае будет полезным использовать <code>withTaskCancellationHandler</code>.</p>
+<pre><code class="language-swift">@_unsafeInheritExecutor // the operation runs on the same executor as we start out with
+@available(SwiftStdlib 5.1, *)
+@backDeployed(before: SwiftStdlib 5.8)
+public func withTaskCancellationHandler&lt;T&gt;(
+  operation: () async throws -&gt; T,
+  onCancel handler: @Sendable () -&gt; Void
+) async rethrows -&gt; T {
+  // unconditionally add the cancellation record to the task.
+  // if the task was already cancelled, it will be executed right away.
+  let record = _taskAddCancellationHandler(handler: handler)
+  defer { _taskRemoveCancellationHandler(record: record) }
+
+  return try await operation()
+}
+</code></pre>
+<p>Для большего понимания, ниже на схеме изображены 2 сценария, при котором использовать тот или иной способ отмены.</p>
+<p><img src="images/when_cancel.png" alt="When cancel" /></p>
+<!-- Remember, cancellation does not stop a task from running, it only signals to the task that it has been cancelled and should stop running as soon a possible.
+
+Cancellation is a purely Boolean state; there’s no way to include additional information like the reason for cancellation. This reflects the fact that a task can be canceled for many reasons, and additional reasons can accrue during the cancellation process. -->
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="dive_deeper.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="unstructurred.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="async_let_under_the_hood.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="welcome_practice.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -363,33 +336,17 @@ Task {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="dive_deeper.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="unstructurred.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="async_let_under_the_hood.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="welcome_practice.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

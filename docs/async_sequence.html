@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Погружаемся глубже - Structured Concurrency не магия</title>
+        <title>Практика AsyncSequence - Structured Concurrency не магия</title>
 
 
         <!-- Custom HTML head -->
@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html" class="active"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html" class="active"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -240,18 +240,89 @@
 }
 
 </style>
-<h1 id="Погружаемся-глубже"><a class="header" href="#Погружаемся-глубже">Погружаемся глубже</a></h1>
-<p>В этом разделе мы заглянем в исходный код компилятора <code>stdlib/public/Concurrency</code>, а именно рассмотрим как устроена задача под капотом, посмотрим на <code>async let</code>, а так же узнаем, как компилятор понимает какая именно из задач является структурированной, а какая не структурированной.</p>
+<h3 id="Практика-asyncsequence"><a class="header" href="#Практика-asyncsequence">Практика: AsyncSequence</a></h3>
+<p>В этой главе мы разберем технологию <code>AsyncSequence</code> в Swift, которая позволяет работать с последовательностями данных асинхронно. AsyncSequence полезен, когда нам нужно получать данные постепенно или по частям, например, при чтении из потока данных или получении событий. Мы рассмотрим реальные примеры использования и узнаем, как управлять асинхронными последовательностями.</p>
+<h4 id="Что-такое-asyncsequence"><a class="header" href="#Что-такое-asyncsequence">Что такое AsyncSequence?</a></h4>
+<p><code>AsyncSequence</code> — это протокол, который предоставляет интерфейс для асинхронного итератора. Вместо того чтобы возвращать все элементы сразу, как обычные последовательности <code>Sequence</code>, <code>AsyncSequence</code> возвращает элементы по одному, позволяя обрабатывать их асинхронно.</p>
+<p>Это особенно полезно для работы с операциями, которые могут занять неопределенное время, например:</p>
+<ul>
+<li>Сетевые запросы с постепенным поступлением данных.</li>
+<li>Потоки данных, такие как события или сообщения.</li>
+<li>Чтение файлов или данных из внешних источников.</li>
+</ul>
+<h4 id="Основные-концепции"><a class="header" href="#Основные-концепции">Основные концепции</a></h4>
+<ul>
+<li><code>AsyncIterator</code> — объект, который итерирует через элементы асинхронной последовательности.</li>
+<li><code>for await</code> — специальная конструкция для итерации по элементам AsyncSequence.</li>
+</ul>
+<h4 id="network-status"><a class="header" href="#network-status">Network status</a></h4>
+<p>Давайте рассмотрим простой пример асинхронной последовательности, которая используется для отслеживания статуса сети в реальном времени.
+Этот подход позволяет нам удобно и эффективно обрабатывать изменения в статусе интернет-соединения.</p>
+<pre><code class="language-swift">extension NWPath.Status {
+	var isConnected: Bool {
+		self != .satisfied
+	}
+}
+
+struct NetworkStatus: AsyncSequence {
+	typealias Element = Bool
+
+	func makeAsyncIterator() -&gt; AsyncStream&lt;Element&gt;.Iterator {
+		let monitor = NWPathMonitor()
+		let monitorQueue = DispatchQueue(label: String(describing: Self.self) + "Queue")
+
+		return AsyncStream { continuation in
+			monitor.pathUpdateHandler = { path in
+				continuation.yield(path.status.isConnected)
+			}
+
+			monitor.start(queue: monitorQueue)
+
+			continuation.onTermination = { @Sendable _ in
+				monitor.cancel()
+			}
+		}
+		.makeAsyncIterator()
+	}
+}
+</code></pre>
+<ol>
+<li>
+<p><code>NetworkStatus</code> реализует протокол AsyncSequence. Протокол <code>AsyncSequence</code> требует реализации типа алиаса <code>Element</code> (является типом данных <code>Bool</code>) и метод <code>makeAsyncIterator()</code>. Последний возвращает асинхронный итератор, который будет управлять последовательностью значений.</p>
+</li>
+<li>
+<p>В основе нашего подхода лежит <code>NWPathMonitor</code> из фреймворка <code>Network</code>, который предназначен для отслеживания статуса сети. Этот монитор позволяет следить за изменениями подключения, включая переключения между Wi-Fi, сотовой связью и отсутствием сети.</p>
+</li>
+</ol>
+<ul>
+<li><code>monitor.pathUpdateHandler</code>: данный обработчик вызывается каждый раз, когда происходит изменение состояния сети. Мы используем его, чтобы передать новое значение состояния через <code>continuation.yield</code>.</li>
+<li><code>monitor.start(queue:)</code>: для запуска <code>NWPathMonitor</code> необходимо указать, в каком потоке (очереди) будет обрабатываться его работа. Здесь используется очередь <code>DispatchQueue</code>, специально созданная для мониторинга.</li>
+</ul>
+<ol start="3">
+<li>Асинхронные последовательности (sequence), такие как <code>AsyncStream</code>, обеспечивают удобный способ создания и управления последовательными данными, которые асинхронно поступают во времени. В нашем коде <code>AsyncStream</code> создаёт поток значений на основе изменений статуса сети. Этот поток затем возвращает итератор, который мы передаём дальше.</li>
+</ol>
+<ul>
+<li><code>continuation.yield</code>: передаёт данные (в данном случае — состояние сети) асинхронно в поток, когда изменяется статус сети.</li>
+<li><code>continuation.onTermination</code>: обрабатывает завершение потока. Когда поток завершён, монитор сети <code>NWPathMonitor</code> останавливается с помощью метода <code>cancel()</code>.</li>
+</ul>
+<h4 id="Использование"><a class="header" href="#Использование">Использование</a></h4>
+<p>Используя асинхронный цикл <code>for await</code>, мы можем последовательно получать значения состояния сети. Этот цикл будет постоянно ждать изменения состояния и реагировать на него.</p>
+<pre><code class="language-swift">var isNetworkAvailable: Bool = false
+
+for await networkAlive in NetworkStatus() {
+    isNetworkAvailable = networkAlive
+}
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="task_tips.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="practice_cat.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="task_hood.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="task_tips.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -261,33 +332,17 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="task_tips.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="practice_cat.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="task_hood.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="task_tips.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 
