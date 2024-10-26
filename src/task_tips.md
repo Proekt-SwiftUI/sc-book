@@ -239,34 +239,6 @@ func test_detach_cancel_taskGroup() async {
 await test_detach_cancel_taskGroup()
 ```
 
-#### Worker
-
-```swift
-struct EmptyResult {}
-
-actor Worker {
-	var workerTask: Task<Void, Never>?
-	var result: EmptyResult?
-	
-	deinit {
-		assert(workerTask != nil)
-		print("Retain count = ", _getRetainCount(Worker.self))
-		print("Weak Retain count = ", _getWeakRetainCount(Worker.self))
-		print("deinit actor")
-	}
-	
-	func execute() {
-		workerTask = Task {
-			print("начало работы задачи")
-			try? await Task.sleep(for: .seconds(1))
-			
-			self.result = EmptyResult()
-			print("конец работы, выход из области видимости")
-		}
-	}
-}
-```
-
 #### Управление задачей при помощи Task.yeild()
 
 При использовании акторов иногда требуется явно приостановить выполнение задачи, чтобы обеспечить равномерное распределение ресурсов и дать другим задачам возможность выполняться.

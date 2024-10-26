@@ -1,5 +1,6 @@
 # Оглавление
 
+- [Введение](./intro.md)
 - [Основы](./beginning.md)
 - [Unstructured concurrency](./unstructurred.md)
 - [Отмена задач](./task_cancellation.md)
@@ -10,5 +11,4 @@
 - [Погружаемся глубже](./dive_deeper.md)
     - [Task под капотом](./task_hood.md)
     - [Async let под капотом](./async_let_under_the_hood.md)
-    - [Кооперативный тред пул]()
-<!-- - [Терминология]() -->
+    <!-- - [Кооперативный тред пул]() -->

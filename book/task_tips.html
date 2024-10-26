@@ -88,7 +88,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">1.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">2.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">3.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">4.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">4.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">4.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html" class="active"><strong aria-hidden="true">4.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">5.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">5.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">5.2.</strong> Async let под капотом</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> Кооперативный тред пул</div></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Введение</a></li><li class="chapter-item expanded "><a href="beginning.html"><strong aria-hidden="true">2.</strong> Основы</a></li><li class="chapter-item expanded "><a href="unstructurred.html"><strong aria-hidden="true">3.</strong> Unstructured concurrency</a></li><li class="chapter-item expanded "><a href="task_cancellation.html"><strong aria-hidden="true">4.</strong> Отмена задач</a></li><li class="chapter-item expanded "><a href="welcome_practice.html"><strong aria-hidden="true">5.</strong> Практика</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="practice_cat.html"><strong aria-hidden="true">5.1.</strong> Практика async let & withTaskGroup</a></li><li class="chapter-item expanded "><a href="async_sequence.html"><strong aria-hidden="true">5.2.</strong> Практика AsyncSequence</a></li><li class="chapter-item expanded "><a href="task_tips.html" class="active"><strong aria-hidden="true">5.3.</strong> Трюки и полезное</a></li></ol></li><li class="chapter-item expanded "><a href="dive_deeper.html"><strong aria-hidden="true">6.</strong> Погружаемся глубже</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="task_hood.html"><strong aria-hidden="true">6.1.</strong> Task под капотом</a></li><li class="chapter-item expanded "><a href="async_let_under_the_hood.html"><strong aria-hidden="true">6.2.</strong> Async let под капотом</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -445,31 +445,6 @@ Finish task with TaskPriority.low done
 
 await test_detach_cancel_taskGroup()
 </code></pre>
-<h4 id="worker"><a class="header" href="#worker">Worker</a></h4>
-<pre><code class="language-swift">struct EmptyResult {}
-
-actor Worker {
-	var workerTask: Task&lt;Void, Never&gt;?
-	var result: EmptyResult?
-	
-	deinit {
-		assert(workerTask != nil)
-		print("Retain count = ", _getRetainCount(Worker.self))
-		print("Weak Retain count = ", _getWeakRetainCount(Worker.self))
-		print("deinit actor")
-	}
-	
-	func execute() {
-		workerTask = Task {
-			print("начало работы задачи")
-			try? await Task.sleep(for: .seconds(1))
-			
-			self.result = EmptyResult()
-			print("конец работы, выход из области видимости")
-		}
-	}
-}
-</code></pre>
 <h4 id="Управление-задачей-при-помощи-taskyeild"><a class="header" href="#Управление-задачей-при-помощи-taskyeild">Управление задачей при помощи Task.yeild()</a></h4>
 <p>При использовании акторов иногда требуется явно приостановить выполнение задачи, чтобы обеспечить равномерное распределение ресурсов и дать другим задачам возможность выполняться.
 Для этого используется метод <code>Task.yield()</code>, который позволяет текущей задаче приостановиться и уступить выполнение другим задачам, ожидающим своей очереди.</p>
@@ -767,6 +742,22 @@ MyClass()
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
