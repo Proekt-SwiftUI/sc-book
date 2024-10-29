@@ -445,7 +445,7 @@ Finish task with TaskPriority.low done
 
 await test_detach_cancel_taskGroup()
 </code></pre>
-<h4 id="Управление-задачей-при-помощи-taskyeild"><a class="header" href="#Управление-задачей-при-помощи-taskyeild">Управление задачей при помощи Task.yeild()</a></h4>
+<h4 id="Управление-задачей-при-помощи-taskyield"><a class="header" href="#Управление-задачей-при-помощи-taskyield">Управление задачей при помощи Task.yield()</a></h4>
 <p>При использовании акторов иногда требуется явно приостановить выполнение задачи, чтобы обеспечить равномерное распределение ресурсов и дать другим задачам возможность выполняться.
 Для этого используется метод <code>Task.yield()</code>, который позволяет текущей задаче приостановиться и уступить выполнение другим задачам, ожидающим своей очереди.</p>
 <pre><code class="language-swift">protocol Start: Actor {
@@ -742,6 +742,22 @@ MyClass()
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

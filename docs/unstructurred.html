@@ -243,10 +243,10 @@
 <h1 id="unstructured-concurrency"><a class="header" href="#unstructured-concurrency">Unstructured Concurrency</a></h1>
 <p>Если <strong>SC</strong> - это явно упорядоченные отношения между родильской и дочерними задачами, то Unstructured Concurrency — полная противоположность.</p>
 <p>Unstructured concurrency (<strong>UC</strong>), напротив, предоставляет разработчику больше гибкости: задачи могут существовать независимо друг от друга, не имеют явной иерархии и не связаны напрямую с родительской задачей. В определенных ситуациях не обойтись без <strong>UC</strong> и такое поведение также означает, что разработчик сам отвечает за корректное управление задачами, отмену и обработку ошибок.</p>
-<div class="mdbook-alerts mdbook-alerts-note">
+<div class="mdbook-alerts mdbook-alerts-important">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
-  note
+  important
 </p>
 <p>Основное отличие Unstructured от Structured — отсуствие родительской задачи!</p>
 </div>
@@ -366,6 +366,22 @@ deinit actor
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

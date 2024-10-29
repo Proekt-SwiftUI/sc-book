@@ -269,7 +269,7 @@
 <p>Посмотрим на нашу функцию приготовления <code>makeSoup</code>.</p>
 <p><img src="images/task_inside_func.png" alt="Make Soup UC" /></p>
 <p>Возможно вы захотите явно добавить неструктурированные задачи <code>Task { … }</code> к вашим функциям и будете ожидать возвращения значения.
-Это подразумевает, что задача будет выполняться конкуретно, но все же это не рекумондуемый способ использовать конкурентность в Swift.
+Это подразумевает, что задача будет выполняться конкуретно, но все же это не рекомендуемый способ использовать конкурентность в Swift.
 Посмотрите на эту же функцию, но с использованием <strong>SC</strong>.</p>
 <p><img src="images/soup_with_sc.png" alt="Make Soup SC" /></p>
 <p>Поскольку мы знаем количество дочерних задач, мы можем использовать удобный синтаксис <code>async let</code>.
@@ -318,6 +318,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
