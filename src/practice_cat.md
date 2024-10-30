@@ -29,7 +29,7 @@ actor CatDownloader {
 	
 	// URL для аватарки
 	let avatarURL: URL = .init(string: "https://image.lexica.art/full_webp/4f696c7b-f280-43ce-80f0-dd211c7f553")!
-	let catAPI: URL = .init(string: "https://raw.githubusercontent.com/Proekt-SwiftUI/sc-book/refs/heads/main/practice_data/cat_api.json?token=GHSAT0AAAAAACY4C77IXVFZ522PDU33FK6AZYPWQEQ")!
+	let catAPI: URL = .init(string: "https://raw.githubusercontent.com/Proekt-SwiftUI/sc-book/refs/heads/main/practice_data/cat_api.json")!
 	
 	// Скачиваем аватарку кота. В случае неудачи возвращаем nil
 	func downloadCatAvatar() async throws -> UIImage? {
@@ -233,7 +233,7 @@ func downloadViaTaskGroup() async {
 }
 ```
 
-#### Когда использовать async let и когда withTaskGroup
+#### Когда использовать async let и когда withTaskGroup ?
 
 - async let — подходит для параллельного выполнения небольшого количества задач, когда порядок завершения не важен. Хорошо, если задачи не зависят друг от друга.
 - withTaskGroup — используется для более сложных сценариев, когда нужно динамически создавать и управлять задачами, например, при большом количестве запросов или циклах с дочерними задачами.

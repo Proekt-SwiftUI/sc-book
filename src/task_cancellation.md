@@ -66,7 +66,7 @@ public struct CancellationError: Error {
 > Очень важно проверить отмену задачи перед выполнением затратной работы.
 
 Проверка на отмену является синхронным методом, поэтому любая функция, асинхронная или синхронная, реагирующая на отмену, должна проверить статус перед продолжением работы.
-Отмена задачи с помощью `isCancelled` или `checkCancellation` полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации `AsyncSequence`. В таком случае будет полезным использовать `withTaskCancellationHandler`.
+Отмена задачи с помощью `isCancelled` или `checkCancellation` полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации [AsyncSequence](./async_sequence.md). В таком случае будет полезным использовать `withTaskCancellationHandler`.
 
 ```swift
 @_unsafeInheritExecutor // the operation runs on the same executor as we start out with
@@ -89,9 +89,7 @@ public func withTaskCancellationHandler<T>(
 
 ![When cancel][when_cancel]
 
-<!-- Remember, cancellation does not stop a task from running, it only signals to the task that it has been cancelled and should stop running as soon a possible.
-
-Cancellation is a purely Boolean state; there’s no way to include additional information like the reason for cancellation. This reflects the fact that a task can be canceled for many reasons, and additional reasons can accrue during the cancellation process. -->
+[Следующий раздел](./welcome_practice.md) посвящен практическому применению знаний.
 
 [partial_task]: https://developer.apple.com/documentation/swift/partialasynctask
 [cancell_all]: https://developer.apple.com/documentation/swift/taskgroup/cancelall()

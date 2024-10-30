@@ -296,7 +296,7 @@ public struct CancellationError: Error {
 <p>Очень важно проверить отмену задачи перед выполнением затратной работы.</p>
 </div>
 <p>Проверка на отмену является синхронным методом, поэтому любая функция, асинхронная или синхронная, реагирующая на отмену, должна проверить статус перед продолжением работы.
-Отмена задачи с помощью <code>isCancelled</code> или <code>checkCancellation</code> полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации <code>AsyncSequence</code>. В таком случае будет полезным использовать <code>withTaskCancellationHandler</code>.</p>
+Отмена задачи с помощью <code>isCancelled</code> или <code>checkCancellation</code> полезна, когда задача запущена, но бывают случаи, когда вам нужно отреагировать на отмену, но задача в данный момент приостановлена и никакой код не выполняется, например при реализации <a href="./async_sequence.html">AsyncSequence</a>. В таком случае будет полезным использовать <code>withTaskCancellationHandler</code>.</p>
 <pre><code class="language-swift">@_unsafeInheritExecutor // the operation runs on the same executor as we start out with
 @available(SwiftStdlib 5.1, *)
 @backDeployed(before: SwiftStdlib 5.8)
@@ -314,9 +314,7 @@ public func withTaskCancellationHandler&lt;T&gt;(
 </code></pre>
 <p>Для большего понимания, ниже на схеме изображены 2 сценария, при котором использовать тот или иной способ отмены.</p>
 <p><img src="images/when_cancel.png" alt="When cancel" /></p>
-<!-- Remember, cancellation does not stop a task from running, it only signals to the task that it has been cancelled and should stop running as soon a possible.
-
-Cancellation is a purely Boolean state; there’s no way to include additional information like the reason for cancellation. This reflects the fact that a task can be canceled for many reasons, and additional reasons can accrue during the cancellation process. -->
+<p><a href="./welcome_practice.html">Следующий раздел</a> посвящен практическому применению знаний.</p>
 
                     </main>
 
