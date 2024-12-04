@@ -694,9 +694,11 @@ actor Two: start(times:) 99
 actor Two: start(times:) 100
 </code></pre>
 </details>
-<h4 id="isolated-deinit"><a class="header" href="#isolated-deinit">Isolated deinit</a></h4>
-<!-- https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md -->
-<pre><code class="language-swift">@globalActor
+<!-- #### Isolated deinit
+https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md
+
+```swift
+@globalActor
 final actor Moonland {
 	static let shared = Moonland()
 }
@@ -711,8 +713,9 @@ class MyClass {
 }
 
 MyClass()
-</code></pre>
 
+```
+-->
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

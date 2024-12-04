@@ -243,6 +243,9 @@
 </style>
 <h1 id="О-чем-эта-книга-"><a class="header" href="#О-чем-эта-книга-">О чем эта книга ?</a></h1>
 <p>В данной <a href="https://github.com/Proekt-SwiftUI/sc-book">книге</a> я попытался рассказать о фундаментальных основах SC на языке Swift, принципах и разнице между Unstructured Concurrency, ручной и автоматической отмене задач, приоритете задачи и отладки.</p>
+<hr />
+<h1 id="Об-авторе"><a class="header" href="#Об-авторе">Об авторе</a></h1>
+<p><img src="images/BookAuthor.png" alt="Автор данной книги, если вы не знали" /></p>
 <div class="mdbook-alerts mdbook-alerts-tip">
 <p class="mdbook-alerts-title">
   <span class="mdbook-alerts-icon"></span>
@@ -251,14 +254,19 @@
 <p>Реквизиты для поддержки автора ниже.</p>
 </div>
 <h3 id="В-рублях-РФ"><a class="header" href="#В-рублях-РФ">В рублях РФ</a></h3>
-<p>QR-код для пополнения Тинькофф</p>
+<details>
+  <summary>QR-код для пополнения Тинькофф</summary>
 <p><img src="images/payment_qr.png" alt="QR-код для пополнения Тинькофф" /></p>
+</details>
 <h3 id="В-долларах"><a class="header" href="#В-долларах">В долларах</a></h3>
-<p>Freedom Bank KZ (MasterCard):</p>
+<details>
+  <summary>Freedom Bank KZ (MasterCard)</summary>
 <pre><code class="language-js">5269 8800 0778 4309
 </code></pre>
+</details>
 <h3 id="В-криптовалюте"><a class="header" href="#В-криптовалюте">В криптовалюте</a></h3>
-<p>USDT (Tether USDT) — BSC (BEP20):</p>
+<details>
+  <summary>USDT (Tether USDT) — BSC (BEP20)</summary>
 <pre><code class="language-bash">0x273fe5c8f1d9886629967ba11ca88e7b6276fe8d
 </code></pre>
 <p>USDC (Solana):</p>
@@ -270,6 +278,7 @@
 <p>TON coin:</p>
 <pre><code class="language-bash">UQARZfodIoN5WHeGSmfiIFrgBsnMMKHI2hDJeT0yjA-LykFw
 </code></pre>
+</details>
 <h3 id="Связь-со-мной"><a class="header" href="#Связь-со-мной">Связь со мной</a></h3>
 <ol>
 <li><a href="https://github.com/wmorgue">GitHub</a></li>
@@ -1710,9 +1719,11 @@ actor Two: start(times:) 99
 actor Two: start(times:) 100
 </code></pre>
 </details>
-<h4 id="isolated-deinit"><a class="header" href="#isolated-deinit">Isolated deinit</a></h4>
-<!-- https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md -->
-<pre><code class="language-swift">@globalActor
+<!-- #### Isolated deinit
+https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md
+
+```swift
+@globalActor
 final actor Moonland {
 	static let shared = Moonland()
 }
@@ -1727,8 +1738,9 @@ class MyClass {
 }
 
 MyClass()
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><style>
+
+```
+--><div style="break-before: page; page-break-before: always;"></div><style>
 .mdbook-alerts {
   padding: 8px 16px;
   margin-bottom: 16px;
@@ -1865,6 +1877,13 @@ MyClass()
 
 </style>
 <h1 id="Заглядываем-внутрь-task"><a class="header" href="#Заглядываем-внутрь-task">Заглядываем внутрь Task</a></h1>
+<div class="mdbook-alerts mdbook-alerts-tip">
+<p class="mdbook-alerts-title">
+  <span class="mdbook-alerts-icon"></span>
+  tip
+</p>
+<p>В главе 3 подробно рассказано, зачем нужна структура данных Task.</p>
+</div>
 <p>Для начала, каждая задача имеет четыре состояния. За состояние (статус) отвечает класс <code>TaskStatusRecord</code>:</p>
 <ol>
 <li>Suspended: приостановлена и не выполняется</li>
@@ -2041,7 +2060,7 @@ Task {
   <span class="mdbook-alerts-icon"></span>
   important
 </p>
-<p>Каждая задача, созднанная с помощью <code>async let</code> является структурированной.</p>
+<p>Каждая задача, созднанная с помощью <code>async let</code> является структурированной. Более подробно про <code>async let</code> в главе 2.</p>
 </div>
 <h3 id="Жизненный-цикл-async-let"><a class="header" href="#Жизненный-цикл-async-let">Жизненный цикл async let</a></h3>
 <ol>
@@ -2086,10 +2105,10 @@ let result = try await data
 print("Data size: \(result.count)")
 
 // или более короткой синтаксис
-// print("Data size: \(try await data)")
+// print("Data size: \(try await data.count)")
 </code></pre>
-<p>Под первым комментарием <code>// 1</code> мы создаем задачу с помощью <code>async let</code> синтаксиса. Важно понять, что в этом случае задача не приостанавливается, поскольку ключевое слово <code>await</code> отсутствует.
-Только во втором комментарии <code>// 2</code> мы указываем ключевое слово <code>await</code>, с помощью которого задача приостанавливается и возвращает результат.</p>
+<p>Под первым комментарием <code>// 1</code> мы создаем задачу с помощью <code>async let</code> синтаксиса. Важно понять, что в этом случае задача не приостанавливается, поскольку ключевое слово <code>await</code> отсутствует.</p>
+<p>Только во втором комментарии <code>// 2</code> мы указываем ключевое слово <code>await</code>, с помощью которого задача приостанавливается и возвращает результат.</p>
 
                     </main>
 

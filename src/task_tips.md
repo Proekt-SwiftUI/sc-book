@@ -497,8 +497,8 @@ actor Two: start(times:) 100
 ```
 </details>
 
-#### Isolated deinit
-<!-- https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md -->
+<!-- #### Isolated deinit
+https://github.com/swiftlang/swift-evolution/blob/main/proposals/0371-isolated-synchronous-deinit.md
 
 ```swift
 @globalActor
@@ -516,4 +516,6 @@ class MyClass {
 }
 
 MyClass()
+
 ```
+-->
